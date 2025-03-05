@@ -1,6 +1,5 @@
 # Start
-In order to compile we will have to use the 32-bit format, don't worry this Operating System
-can also run under x86_64, blame QEMU not me :)
+In order to compile we will have to use the 32-bit format,
 Commands:
 
 # Compile the source files in 32-bit mode
