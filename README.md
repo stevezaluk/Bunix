@@ -10,12 +10,8 @@ gcc -m32 -ffreestanding -c init/main.c -o init/main.o
 gcc -m32 -ffreestanding -c lib/string.c -o lib/string.o
 
 # Link the object files
-ld -m elf_i386 -T linker.ld -o kernel.elf \
-    drivers/video/vga.o \
-    drivers/keyboard/kb.o \
-    drivers/shell/shell.o \
-    init/main.o \
-    lib/string.o
+ld -m elf_i386 -T linker.ld -o kernel.elf drivers/video/vga.o drivers/keyboard/kb.o drivers/shell/shell.o init/main.o lib/string.o
+
 
 # Optionally, create a raw binary
 objcopy -O binary kernel.elf kernel.bin
