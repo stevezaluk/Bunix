@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 // Shell prompt
-static const char *SHELL_PROMPT = "bunix> ";
+static const char *SHELL_PROMPT = "Bunix> ";
 
 // Command: help
 static void shell_help(void) {
@@ -61,7 +61,6 @@ static void shell_cpuinfo(void) {
 
 // Initialize the shell
 void shell_init(void) {
-    vga_puts("Welcome to Bunix Shell!\n");
     vga_puts(SHELL_PROMPT);
 }
 
