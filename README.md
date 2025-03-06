@@ -26,5 +26,8 @@ menuentry "Bunix" {
     multiboot /boot/kernel.elf
 }
 
-# Finally run the kernel 
-qemu-system-x86_64 -kernel kernel.elf
+# Create ISO
+grub-mkrescue -o bunix.iso isodir
+
+# Finally run the ISO
+qemu-system-x86_64 -cdrom bunix.iso
