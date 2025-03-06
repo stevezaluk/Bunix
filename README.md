@@ -17,5 +17,14 @@ ld -m elf_i386 -T linker.ld -o kernel.elf init/main.o drivers/video/vga.o driver
 # Optionally, create a raw binary
 objcopy -O binary kernel.elf kernel.bin
 
+# Copy kernel over to grub
+mkdir -p isodir/boot/grub
+cp kernel.elf isodir/boot/kernel.elf
+
+# Make grub.cfg isodir/boot/grub
+menuentry "Bunix" {
+    multiboot /boot/kernel.elf
+}
+
 # Finally run the kernel 
 qemu-system-x86_64 -kernel kernel.elf
