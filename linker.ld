@@ -3,6 +3,11 @@ ENTRY(_start) /* Define the entry point */
 SECTIONS {
     . = 1M; /* Load the kernel at 1MB (conventional for kernels) */
 
+    /* Ensure the multiboot header is at the beginning of the kernel */
+    .multiboot : {
+        *(.multiboot)
+    } :text
+
     .text : {
         *(.text) /* All text sections (code) */
     } :text /* Assign to the 'text' program header */

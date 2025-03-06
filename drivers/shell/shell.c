@@ -12,11 +12,51 @@ static void shell_help(void) {
     vga_puts("Available commands:\n");
     vga_puts("  help - Show this help message\n");
     vga_puts("  clear - Clear the screen\n");
+    vga_puts("  echo <text> - Print the provided text\n");
+    vga_puts("  cpuinfo - Display CPU architecture information\n");
 }
 
 // Command: clear
 static void shell_clear(void) {
     vga_clear(); // Clear the screen (resets cursor to 0,0)
+}
+
+// Command: echo
+static void shell_echo(const char *text) {
+    vga_puts(text);
+    vga_puts("\n");
+}
+
+// Function to detect CPU architecture
+static void detect_cpu_architecture(void) {
+    unsigned int eax, ebx, ecx, edx;
+    char vendor[13];
+
+    // Get CPU vendor ID
+    __asm__ volatile("cpuid"
+                     : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+                     : "a"(0));
+    *(unsigned int *)&vendor[0] = ebx;
+    *(unsigned int *)&vendor[4] = edx;
+    *(unsigned int *)&vendor[8] = ecx;
+    vendor[12] = '\0';
+
+    // Get CPU features
+    __asm__ volatile("cpuid"
+                     : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+                     : "a"(1));
+
+    // Check if the CPU supports long mode (x86_64)
+    if (edx & (1 << 29)) {
+        vga_puts("Architecture: x86_64\n");
+    } else {
+        vga_puts("Architecture: i386\n");
+    }
+}
+
+// Command: cpuinfo
+static void shell_cpuinfo(void) {
+    detect_cpu_architecture();
 }
 
 // Initialize the shell
@@ -46,11 +86,16 @@ void shell_run(void) {
             input[index] = '\0';
             vga_puts("\n");
 
-            // Execute the command
+            // Parse the input command
             if (strcmp(input, "help") == 0) {
                 shell_help();
             } else if (strcmp(input, "clear") == 0) {
                 shell_clear(); // Clears screen but does NOT print prompt
+            } else if (strncmp(input, "echo ", 5) == 0) {
+                // Extract the text after "echo "
+                shell_echo(input + 5);
+            } else if (strcmp(input, "cpuinfo") == 0) {
+                shell_cpuinfo();
             } else if (input[0] != '\0') {
                 vga_puts("Unknown command: ");
                 vga_puts(input);
