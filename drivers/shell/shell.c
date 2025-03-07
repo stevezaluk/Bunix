@@ -17,7 +17,8 @@ static void shell_help(void) {
     vga_puts("  cpuinfo - Display CPU architecture information\n");
     vga_puts("  reboot - Reboot the system\n");
     vga_puts("  shutdown - Shutdown the system\n");
-    vga_puts("  time - Display the current time\n");
+    vga_puts("  time=de - Display time in Germany (CET/CEST)\n");
+    vga_puts("  time=us - Display time in the US (EST/EDT)\n");
 }
 
 // Command: clear
@@ -107,9 +108,10 @@ static void shell_shutdown(void) {
     *goodnight = 0;
 }
 
-// Command: time
-static void shell_time(void) {
+// Command: time=de or time=us
+static void shell_time(const char *timezone) {
     unsigned char hour, minute, second;
+    unsigned char day, month, year;
     unsigned char statusB;
 
     // Read RTC Status Register B to check BCD and 12/24-hour mode
@@ -152,11 +154,44 @@ static void shell_time(void) {
         : "memory"
     );
 
+    // Read day (register 0x07 for day of month)
+    __asm__ volatile (
+        "mov $0x07, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(day)
+        :
+        : "memory"
+    );
+
+    // Read month (register 0x08 for month)
+    __asm__ volatile (
+        "mov $0x08, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(month)
+        :
+        : "memory"
+    );
+
+    // Read year (register 0x09 for year)
+    __asm__ volatile (
+        "mov $0x09, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(year)
+        :
+        : "memory"
+    );
+
     // Convert BCD to binary (if needed)
     if (!(statusB & 0x04)) { // If BCD mode is enabled (bit 2 = 0)
         hour = (hour >> 4) * 10 + (hour & 0x0F);
         minute = (minute >> 4) * 10 + (minute & 0x0F);
         second = (second >> 4) * 10 + (second & 0x0F);
+        day = (day >> 4) * 10 + (day & 0x0F);
+        month = (month >> 4) * 10 + (month & 0x0F);
+        year = (year >> 4) * 10 + (year & 0x0F);
     }
 
     // Adjust for 12-hour mode (if enabled)
@@ -167,14 +202,65 @@ static void shell_time(void) {
         }
     }
 
-    // Time zone adjustment (example: UTC-5 for EST)
-    hour -= 5; // Subtract 5 hours for EST
-    if (hour < 0) hour += 24;
-
-    // Display the time
-    vga_puts("Current time (EST): ");
+    // Display UTC time
+    vga_puts("UTC time: ");
     vga_putchar((hour / 10) + '0');
     vga_putchar((hour % 10) + '0');
+    vga_putchar(':');
+    vga_putchar((minute / 10) + '0');
+    vga_putchar((minute % 10) + '0');
+    vga_putchar(':');
+    vga_putchar((second / 10) + '0');
+    vga_putchar((second % 10) + '0');
+    vga_puts("\n");
+
+    // Adjust time based on the requested time zone
+    int local_hour = hour;
+    const char *timezone_name = "Local";
+
+    if (strcmp(timezone, "de") == 0) {
+        // Germany: CET (UTC+1) or CEST (UTC+2)
+        bool is_cest = false;
+        if (month > 3 && month < 10) {
+            is_cest = true; // Definitely CEST
+        } else if (month == 3) {
+            // Check if the current day is after the last Sunday in March
+            int last_sunday = 31 - (5 + year + year / 4) % 7; // Zeller's congruence for last Sunday
+            if (day > last_sunday) is_cest = true;
+        } else if (month == 10) {
+            // Check if the current day is before the last Sunday in October
+            int last_sunday = 31 - (5 + year + year / 4) % 7; // Zeller's congruence for last Sunday
+            if (day < last_sunday) is_cest = true;
+        }
+        local_hour += (is_cest ? 2 : 1); // CEST is UTC+2, CET is UTC+1
+        timezone_name = is_cest ? "CEST" : "CET";
+    } else if (strcmp(timezone, "us") == 0) {
+        // US: EST (UTC-5) or EDT (UTC-4)
+        bool is_edt = false;
+        if (month > 3 && month < 11) {
+            is_edt = true; // Definitely EDT
+        } else if (month == 3) {
+            // Check if the current day is after the second Sunday in March
+            int second_sunday = 14 - (1 + year + year / 4) % 7; // Zeller's congruence for second Sunday
+            if (day > second_sunday) is_edt = true;
+        } else if (month == 11) {
+            // Check if the current day is before the first Sunday in November
+            int first_sunday = 7 - (1 + year + year / 4) % 7; // Zeller's congruence for first Sunday
+            if (day < first_sunday) is_edt = true;
+        }
+        local_hour += (is_edt ? -4 : -5); // EDT is UTC-4, EST is UTC-5
+        timezone_name = is_edt ? "EDT" : "EST";
+    }
+
+    // Handle overflow/underflow in local_hour
+    if (local_hour >= 24) local_hour -= 24;
+    if (local_hour < 0) local_hour += 24;
+
+    // Display local time
+    vga_puts(timezone_name);
+    vga_puts(" time: ");
+    vga_putchar((local_hour / 10) + '0');
+    vga_putchar((local_hour % 10) + '0');
     vga_putchar(':');
     vga_putchar((minute / 10) + '0');
     vga_putchar((minute % 10) + '0');
@@ -223,8 +309,10 @@ void shell_run(void) {
                 shell_reboot();
             } else if (strcmp(input, "shutdown") == 0) {
                 shell_shutdown();
-            } else if (strcmp(input, "time") == 0) {
-                shell_time();
+            } else if (strncmp(input, "time=", 5) == 0) {
+                // Extract the timezone (e.g., "de" or "us")
+                const char *timezone = input + 5;
+                shell_time(timezone);
             } else if (input[0] != '\0') {
                 vga_puts("Unknown command: ");
                 vga_puts(input);
@@ -242,5 +330,7 @@ void shell_run(void) {
                 vga_putchar(c);
             }
         }
+    }
+}
     }
 }
