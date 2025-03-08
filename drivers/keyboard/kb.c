@@ -34,12 +34,17 @@ void kb_init(void) {
 // Read a character from the keyboard
 char kb_getchar(void) {
     char c = 0;
-    while (1) {
+    uint8_t scancode;
+    uint8_t status;
+
+    do {
         // Wait until a key is pressed
-        while ((inb(KB_STATUS_PORT) & 0x01) == 0);
+        do {
+            status = inb(KB_STATUS_PORT);
+        } while ((status & 0x01) == 0);
 
         // Read the scancode
-        uint8_t scancode = inb(KB_DATA_PORT);
+        scancode = inb(KB_DATA_PORT);
 
         // Handle key release events
         if (scancode & 0x80) {
@@ -57,15 +62,11 @@ char kb_getchar(void) {
         }
 
         // Convert the scancode to ASCII
-        if (shift_pressed) {
-            c = kb_shift_scancode_to_ascii[scancode];
-        } else {
-            c = kb_scancode_to_ascii[scancode];
+        if (scancode < 128) {
+            c = shift_pressed ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
         }
 
-        if (c != 0) {
-            break;
-        }
-    }
+    } while (c == 0);
+
     return c;
 }
