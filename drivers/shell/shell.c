@@ -7,7 +7,7 @@
 #include <stddef.h>
 
 // Shell prompt
-static const char *SHELL_PROMPT = "Bunix> ";
+static const char *SHELL_PROMPT = "$ ";
 
 // Command: help
 static void shell_help(void) {
