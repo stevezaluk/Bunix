@@ -3,9 +3,7 @@
 
 #include <stdint.h>
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-
+// VGA color enumeration
 enum vga_color {
     VGA_COLOR_BLACK = 0,
     VGA_COLOR_BLUE = 1,
@@ -25,20 +23,21 @@ enum vga_color {
     VGA_COLOR_WHITE = 15,
 };
 
+// Create a VGA color byte
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
     return fg | bg << 4;
 }
 
+// Create a VGA entry (character + color)
 static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
     return (uint16_t) uc | (uint16_t) color << 8;
 }
 
+// Function declarations
 void vga_initialize(void);
+void vga_clear(void);
 void vga_putchar(char c);
 void vga_puts(const char* str);
-void vga_clear(void);
-
-// Cursor functions
 void vga_enable_cursor(void);
 void vga_disable_cursor(void);
 void vga_update_cursor(int x, int y);

@@ -3,7 +3,8 @@
 #include "../../include/keyboard/kb.h"
 #include "../../include/lib/string.h"
 #include <stdbool.h>
-#include <stdint.h>  // Add this for uint8_t
+#include <stdint.h>
+#include <stddef.h>
 
 // Shell prompt
 static const char *SHELL_PROMPT = "Bunix> ";
@@ -28,6 +29,10 @@ static void shell_clear(void) {
 
 // Command: echo
 static void shell_echo(const char *text) {
+    if (text == NULL || *text == '\0') {
+        vga_puts("Usage: echo <text>\n");
+        return;
+    }
     vga_puts(text);
     vga_puts("\n");
 }
@@ -110,6 +115,11 @@ static void shell_shutdown(void) {
 
 // Command: time=de or time=us
 static void shell_time(const char *timezone) {
+    if (timezone == NULL || (*timezone != 'd' && *timezone != 'u')) {
+        vga_puts("Usage: time=de or time=us\n");
+        return;
+    }
+
     unsigned char hour, minute, second;
     unsigned char day, month, year;
     unsigned char statusB;
