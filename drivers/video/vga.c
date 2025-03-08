@@ -1,5 +1,5 @@
 #include "../../include/video/vga.h"
-#include "../../include/kernel/ports.h"
+#include "../../include/kernel/ports/ports.h"
 #include <stddef.h>
 
 // VGA memory address
