@@ -52,7 +52,7 @@ static void vga_scroll(void) {
 void vga_initialize(void) {
     vga_row = 0;
     vga_column = 0;
-    vga_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    vga_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     vga_buffer = VGA_MEMORY;
     vga_clear();
     vga_enable_cursor();
