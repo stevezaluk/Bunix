@@ -20,10 +20,8 @@ void _start(void) {
     while (1); // Halt the CPU (infinite loop)
 }
 
-int main(void) {
-    vga_initialize();
-
-    // Print the ASCII art
+// Function to display the ASCII art banner
+void display_banner(void) {
     vga_puts("  ___ _   _ _  _ _____  __\n");
     vga_puts(" | _ ) | | | \\| |_ _\\ \\/ /\n");
     vga_puts(" | _ \\ |_| | .` || | >  <\n");
@@ -33,12 +31,26 @@ int main(void) {
     vga_puts("All rights reserved.\n");
 
     vga_puts("\n");
-    vga_puts("Type help for available commands.\n");
+    vga_puts("Type 'help' for available commands.\n");
 
     vga_puts("\n");
+}
 
-    kb_init();      // Initialize the keyboard driver
-    shell_init();   // Initialize the shell
-    shell_run();    // Run the shell
+int main(void) {
+    // Initialize the VGA text mode
+    vga_initialize();
+
+    // Display the ASCII art banner
+    display_banner();
+
+    // Initialize the keyboard driver
+    kb_init();
+
+    // Initialize the shell
+    shell_init();
+
+    // Run the shell
+    shell_run();
+
     return 0;
 }
