@@ -1,6 +1,5 @@
 #include "../../include/kernel/ports/ports.h"
 #include "../../include/keyboard/kb.h"
-#include "../../include/video/vga.h"
 #include <stdbool.h>
 
 // Scancode to ASCII mapping (for US QWERTY keyboard)
@@ -35,13 +34,10 @@ void kb_init(void) {
 char kb_getchar(void) {
     char c = 0;
     uint8_t scancode;
-    uint8_t status;
 
-    do {
+    while (1) {
         // Wait until a key is pressed
-        do {
-            status = inb(KB_STATUS_PORT);
-        } while ((status & 0x01) == 0);
+        while ((inb(KB_STATUS_PORT) & 0x01) == 0);
 
         // Read the scancode
         scancode = inb(KB_DATA_PORT);
@@ -66,7 +62,8 @@ char kb_getchar(void) {
             c = shift_pressed ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
         }
 
-    } while (c == 0);
+        if (c != 0) break;
+    }
 
     return c;
 }

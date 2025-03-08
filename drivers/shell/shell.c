@@ -20,6 +20,7 @@ static void shell_help(void) {
     vga_puts("  shutdown - Shutdown the system\n");
     vga_puts("  time=de - Display time in Germany (CET/CEST)\n");
     vga_puts("  time=us - Display time in the US (EST/EDT)\n");
+    vga_puts("  date - Display the current date\n");
 }
 
 // Command: clear
@@ -280,6 +281,73 @@ static void shell_time(const char *timezone) {
     vga_puts("\n");
 }
 
+// Command: date
+static void shell_date(void) {
+    unsigned char day, month, year;
+    unsigned char statusB;
+
+    // Read RTC Status Register B to check BCD mode
+    __asm__ volatile (
+        "mov $0x0B, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(statusB)
+        :
+        : "memory"
+    );
+
+    // Read day (register 0x07 for day of month)
+    __asm__ volatile (
+        "mov $0x07, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(day)
+        :
+        : "memory"
+    );
+
+    // Read month (register 0x08 for month)
+    __asm__ volatile (
+        "mov $0x08, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(month)
+        :
+        : "memory"
+    );
+
+    // Read year (register 0x09 for year)
+    __asm__ volatile (
+        "mov $0x09, %%al\n\t"
+        "outb %%al, $0x70\n\t"
+        "inb $0x71, %%al"
+        : "=a"(year)
+        :
+        : "memory"
+    );
+
+    // Convert BCD to binary (if needed)
+    if (!(statusB & 0x04)) { // If BCD mode is enabled (bit 2 = 0)
+        day = (day >> 4) * 10 + (day & 0x0F);
+        month = (month >> 4) * 10 + (month & 0x0F);
+        year = (year >> 4) * 10 + (year & 0x0F);
+    }
+
+    // Display the date
+    vga_puts("Date: ");
+    vga_putchar((day / 10) + '0');
+    vga_putchar((day % 10) + '0');
+    vga_putchar('/');
+    vga_putchar((month / 10) + '0');
+    vga_putchar((month % 10) + '0');
+    vga_putchar('/');
+    vga_putchar('2');
+    vga_putchar('0'); // Assuming the year is in the 21st century
+    vga_putchar((year / 10) + '0');
+    vga_putchar((year % 10) + '0');
+    vga_puts("\n");
+}
+
 // Initialize the shell
 void shell_init(void) {
     vga_puts(SHELL_PROMPT);
@@ -323,8 +391,10 @@ void shell_run(void) {
                 // Extract the timezone (e.g., "de" or "us")
                 const char *timezone = input + 5;
                 shell_time(timezone);
+            } else if (strcmp(input, "date") == 0) {
+            shell_date();
             } else if (input[0] != '\0') {
-                vga_puts("Unknown command: ");
+                vga_puts("Command not found: ");
                 vga_puts(input);
                 vga_puts("\n");
             }
