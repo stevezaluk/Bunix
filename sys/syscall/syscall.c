@@ -15,3 +15,14 @@ int sys_write(int fd, const void *buf, size_t count) {
     );
     return ret;
 }
+
+// Implementation of the sys_exit function
+void sys_exit(int status) {
+    __asm__ volatile (
+        "int $0x80" // Trigger interrupt 0x80 (syscall interrupt)
+        :
+        : "a" (SYS_EXIT), // EAX = syscall number (SYS_EXIT)
+          "b" (status)     // EBX = exit status
+        : "memory"        // Clobbered memory
+    );
+}
