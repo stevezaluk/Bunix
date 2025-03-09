@@ -1,5 +1,5 @@
 // lib/string.c
-#include "../include/lib/string.h"
+#include "../../../include/lib/string.h"
 
 // Calculate the length of a string
 size_t strlen(const char *str) {

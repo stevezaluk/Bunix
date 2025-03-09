@@ -1,6 +1,7 @@
 #include "../../include/video/vga.h"
 #include "../../include/kernel/ports/ports.h"
 #include <stddef.h>
+#include <string.h> // For memmove
 
 // VGA memory address
 static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
@@ -22,6 +23,9 @@ static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
 // Cursor disable value
 #define VGA_CURSOR_DISABLE 0x20
 
+// Tab width
+#define TAB_WIDTH 4
+
 // Current cursor position and color
 static size_t vga_row;
 static size_t vga_column;
@@ -30,13 +34,8 @@ static uint16_t* vga_buffer;
 
 // Scroll the screen up by one line
 static void vga_scroll(void) {
-    for (size_t y = 1; y < VGA_HEIGHT; y++) {
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            const size_t index_current = y * VGA_WIDTH + x;
-            const size_t index_above = (y - 1) * VGA_WIDTH + x;
-            vga_buffer[index_above] = vga_buffer[index_current];
-        }
-    }
+    // Move all rows up by one
+    memmove(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
 
     // Clear the bottom line
     for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -52,7 +51,7 @@ static void vga_scroll(void) {
 void vga_initialize(void) {
     vga_row = 0;
     vga_column = 0;
-    vga_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    vga_color = VGA_COLOR_DEFAULT;
     vga_buffer = VGA_MEMORY;
     vga_clear();
     vga_enable_cursor();
@@ -87,6 +86,14 @@ void vga_putchar(char c) {
         }
         size_t index = vga_row * VGA_WIDTH + vga_column;
         vga_buffer[index] = vga_entry(' ', vga_color);
+    } else if (c == '\t') {
+        vga_column = (vga_column + TAB_WIDTH) & ~(TAB_WIDTH - 1); // Align to tab width
+        if (vga_column >= VGA_WIDTH) {
+            vga_column = 0;
+            if (++vga_row == VGA_HEIGHT) {
+                vga_scroll();
+            }
+        }
     } else {
         size_t index = vga_row * VGA_WIDTH + vga_column;
         vga_buffer[index] = vga_entry(c, vga_color);
@@ -124,6 +131,9 @@ void vga_disable_cursor(void) {
 
 // Update the cursor position
 void vga_update_cursor(int x, int y) {
+    if (x < 0 || x >= VGA_WIDTH || y < 0 || y >= VGA_HEIGHT) {
+        return; // Invalid position
+    }
     uint16_t pos = y * VGA_WIDTH + x;
 
     outb(VGA_CRTC_ADDR, VGA_CURSOR_LOW_REG);
@@ -131,4 +141,18 @@ void vga_update_cursor(int x, int y) {
 
     outb(VGA_CRTC_ADDR, VGA_CURSOR_HIGH_REG);
     outb(VGA_CRTC_DATA, (uint8_t) ((pos >> 8) & 0xFF));
+}
+
+// Set the current text color
+void vga_set_color(uint8_t color) {
+    vga_color = color;
+}
+
+// Move the cursor to a specific position
+void vga_move_cursor(int x, int y) {
+    if (x >= 0 && x < VGA_WIDTH && y >= 0 && y < VGA_HEIGHT) {
+        vga_column = x;
+        vga_row = y;
+        vga_update_cursor(vga_column, vga_row);
+    }
 }

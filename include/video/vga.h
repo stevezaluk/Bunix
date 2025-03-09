@@ -19,7 +19,7 @@ enum vga_color {
     VGA_COLOR_LIGHT_CYAN = 11,
     VGA_COLOR_LIGHT_RED = 12,
     VGA_COLOR_LIGHT_MAGENTA = 13,
-    VGA_COLOR_LIGHT_BROWN = 14,
+    VGA_COLOR_YELLOW = 14,
     VGA_COLOR_WHITE = 15,
 };
 
@@ -33,13 +33,19 @@ static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
     return (uint16_t) uc | (uint16_t) color << 8;
 }
 
+// Commonly used color combinations
+#define VGA_COLOR_DEFAULT vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK)
+#define VGA_COLOR_ERROR vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_RED)
+
 // Function declarations
-void vga_initialize(void);
-void vga_clear(void);
-void vga_putchar(char c);
-void vga_puts(const char* str);
-void vga_enable_cursor(void);
-void vga_disable_cursor(void);
-void vga_update_cursor(int x, int y);
+void vga_initialize(void);             // Initialize VGA
+void vga_clear(void);                  // Clear the screen
+void vga_putchar(char c);              // Print a character
+void vga_puts(const char* str);        // Print a string
+void vga_enable_cursor(void);          // Enable the cursor
+void vga_disable_cursor(void);         // Disable the cursor
+void vga_update_cursor(int x, int y);  // Update cursor position
+void vga_set_color(uint8_t color);     // Set text color
+void vga_move_cursor(int x, int y);    // Move cursor to a specific position
 
 #endif // VGA_H

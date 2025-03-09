@@ -22,12 +22,23 @@ static const char kb_shift_scancode_to_ascii[128] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-// Track the state of the shift key
-static bool shift_pressed = false;
+// Keyboard state structure
+typedef struct {
+    bool shift_pressed;
+    bool ctrl_pressed;
+    bool alt_pressed;
+    bool caps_lock;
+} kb_state_t;
+
+static kb_state_t kb_state = {false, false, false, false};
 
 // Initialize the keyboard driver
 void kb_init(void) {
-    // No initialization needed for now
+    // Reset keyboard state
+    kb_state.shift_pressed = false;
+    kb_state.ctrl_pressed = false;
+    kb_state.alt_pressed = false;
+    kb_state.caps_lock = false;
 }
 
 // Read a character from the keyboard
@@ -45,21 +56,52 @@ char kb_getchar(void) {
         // Handle key release events
         if (scancode & 0x80) {
             uint8_t released_scancode = scancode & 0x7F;
-            if (released_scancode == 0x2A || released_scancode == 0x36) {
-                shift_pressed = false; // Shift key released
+            switch (released_scancode) {
+                case 0x2A: // Left Shift
+                case 0x36: // Right Shift
+                    kb_state.shift_pressed = false;
+                    break;
+                case 0x1D: // Ctrl
+                    kb_state.ctrl_pressed = false;
+                    break;
+                case 0x38: // Alt
+                    kb_state.alt_pressed = false;
+                    break;
             }
             continue;
         }
 
-        // Handle shift key press
-        if (scancode == 0x2A || scancode == 0x36) {
-            shift_pressed = true; // Shift key pressed
-            continue;
+        // Handle key press events
+        switch (scancode) {
+            case 0x2A: // Left Shift
+            case 0x36: // Right Shift
+                kb_state.shift_pressed = true;
+                continue;
+            case 0x1D: // Ctrl
+                kb_state.ctrl_pressed = true;
+                continue;
+            case 0x38: // Alt
+                kb_state.alt_pressed = true;
+                continue;
+            case 0x3A: // Caps Lock
+                kb_state.caps_lock = !kb_state.caps_lock; // Toggle Caps Lock state
+                continue;
         }
 
         // Convert the scancode to ASCII
         if (scancode < 128) {
-            c = shift_pressed ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
+            bool shift = kb_state.shift_pressed;
+            bool caps_lock = kb_state.caps_lock;
+
+            // Determine the effective case
+            if (caps_lock) {
+                // Caps Lock is on: invert the shift state for letters only
+                if (kb_scancode_to_ascii[scancode] >= 'a' && kb_scancode_to_ascii[scancode] <= 'z') {
+                    shift = !shift;
+                }
+            }
+
+            c = shift ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
         }
 
         if (c != 0) break;
