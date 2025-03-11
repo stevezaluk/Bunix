@@ -2,6 +2,7 @@
 #define VGA_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // VGA color enumeration
 enum vga_color {
@@ -37,8 +38,15 @@ static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
 #define VGA_COLOR_DEFAULT vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK)
 #define VGA_COLOR_ERROR vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_RED)
 
+// Screen dimensions
+#define VGA_WIDTH  80
+#define VGA_HEIGHT 25
+
+// Tab width
+#define TAB_WIDTH 4
+
 // Function declarations
-void vga_initialize(void);             // Initialize VGA
+int vga_initialize(void);             // Initialize VGA
 void vga_clear(void);                  // Clear the screen
 void vga_putchar(char c);              // Print a character
 void vga_puts(const char* str);        // Print a string
@@ -47,5 +55,8 @@ void vga_disable_cursor(void);         // Disable the cursor
 void vga_update_cursor(int x, int y);  // Update cursor position
 void vga_set_color(uint8_t color);     // Set text color
 void vga_move_cursor(int x, int y);    // Move cursor to a specific position
+void vga_swap_buffers(void);           // Swap double buffers (if enabled)
+void vga_set_buffer(uint16_t* buffer); // Set a custom buffer
+void vga_putdec(uint32_t value, uint8_t digits);
 
 #endif // VGA_H

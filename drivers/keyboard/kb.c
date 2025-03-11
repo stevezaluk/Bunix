@@ -1,6 +1,8 @@
 #include "../../include/kernel/ports/ports.h"
 #include "../../include/keyboard/kb.h"
 #include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
 
 // Scancode to ASCII mapping (for US QWERTY keyboard)
 static const char kb_scancode_to_ascii[128] = {
@@ -33,12 +35,13 @@ typedef struct {
 static kb_state_t kb_state = {false, false, false, false};
 
 // Initialize the keyboard driver
-void kb_init(void) {
+int kb_init(void) {
     // Reset keyboard state
     kb_state.shift_pressed = false;
     kb_state.ctrl_pressed = false;
     kb_state.alt_pressed = false;
     kb_state.caps_lock = false;
+    return 0;
 }
 
 // Read a character from the keyboard
@@ -109,3 +112,5 @@ char kb_getchar(void) {
 
     return c;
 }
+
+// Additional functions for extended scancodes, debouncing, etc. can be added here

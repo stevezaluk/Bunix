@@ -8,7 +8,7 @@
 #define KB_STATUS_PORT 0x64
 
 // Initialize the keyboard driver
-void kb_init(void);
+int kb_init(void);
 
 // Read a character from the keyboard
 char kb_getchar(void);

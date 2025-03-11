@@ -1,14 +1,9 @@
 #include "../../include/video/vga.h"
 #include "../../include/kernel/ports/ports.h"
-#include <stddef.h>
-#include <string.h> // For memmove
+#include <string.h> // For memcpy, memmove
 
 // VGA memory address
 static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
-
-// Screen dimensions
-#define VGA_WIDTH  80
-#define VGA_HEIGHT 25
 
 // Cursor control ports
 #define VGA_CRTC_ADDR 0x3D4
@@ -23,24 +18,24 @@ static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
 // Cursor disable value
 #define VGA_CURSOR_DISABLE 0x20
 
-// Tab width
-#define TAB_WIDTH 4
-
 // Current cursor position and color
 static size_t vga_row;
 static size_t vga_column;
 static uint8_t vga_color;
 static uint16_t* vga_buffer;
 
+// Double buffer (optional)
+static uint16_t vga_double_buffer[VGA_HEIGHT * VGA_WIDTH];
+
 // Scroll the screen up by one line
 static void vga_scroll(void) {
     // Move all rows up by one
-    memmove(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
+    memcpy(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
 
     // Clear the bottom line
+    uint16_t blank = vga_entry(' ', vga_color);
     for (size_t x = 0; x < VGA_WIDTH; x++) {
-        const size_t index = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
-        vga_buffer[index] = vga_entry(' ', vga_color);
+        vga_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + x] = blank;
     }
 
     vga_row = VGA_HEIGHT - 1;
@@ -48,22 +43,21 @@ static void vga_scroll(void) {
 }
 
 // Initialize VGA
-void vga_initialize(void) {
+int vga_initialize(void) {
     vga_row = 0;
     vga_column = 0;
     vga_color = VGA_COLOR_DEFAULT;
-    vga_buffer = VGA_MEMORY;
+    vga_buffer = VGA_MEMORY; // Default to VGA memory
     vga_clear();
     vga_enable_cursor();
+    return 0;
 }
 
 // Clear the screen
 void vga_clear(void) {
-    for (size_t y = 0; y < VGA_HEIGHT; y++) {
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            const size_t index = y * VGA_WIDTH + x;
-            vga_buffer[index] = vga_entry(' ', vga_color);
-        }
+    uint16_t blank = vga_entry(' ', vga_color);
+    for (size_t i = 0; i < VGA_HEIGHT * VGA_WIDTH; i++) {
+        vga_buffer[i] = blank;
     }
     vga_row = 0;
     vga_column = 0;
@@ -94,7 +88,7 @@ void vga_putchar(char c) {
                 vga_scroll();
             }
         }
-    } else {
+    } else if (c >= ' ' && c <= '~') { // Only printable ASCII characters
         size_t index = vga_row * VGA_WIDTH + vga_column;
         vga_buffer[index] = vga_entry(c, vga_color);
         if (++vga_column == VGA_WIDTH) {
@@ -105,6 +99,27 @@ void vga_putchar(char c) {
         }
     }
     vga_update_cursor(vga_column, vga_row);
+}
+
+void vga_putdec(uint32_t value, uint8_t digits) {
+    char buffer[10]; // Maximum 10 digits for a 32-bit number
+    int i = 0;
+
+    // Convert number to string
+    do {
+        buffer[i++] = '0' + (value % 10);
+        value /= 10;
+    } while (value > 0);
+
+    // Pad with leading zeros if necessary
+    while (i < digits) {
+        buffer[i++] = '0';
+    }
+
+    // Print in reverse order
+    while (i > 0) {
+        vga_putchar(buffer[--i]);
+    }
 }
 
 // Print a string
@@ -155,4 +170,14 @@ void vga_move_cursor(int x, int y) {
         vga_row = y;
         vga_update_cursor(vga_column, vga_row);
     }
+}
+
+// Swap double buffers
+void vga_swap_buffers(void) {
+    memcpy(VGA_MEMORY, vga_double_buffer, VGA_HEIGHT * VGA_WIDTH * sizeof(uint16_t));
+}
+
+// Set a custom buffer
+void vga_set_buffer(uint16_t* buffer) {
+    vga_buffer = buffer;
 }
