@@ -1,3 +1,5 @@
+https://i.imgur.com/aqJ2qFC.jpeg
+
 Bunix all rights reserved.
 --------------------------
 
@@ -20,3 +22,4 @@ Example for syscalls, keyboard drivers, etc.
 # Future of Bunix
 This is definitely Fun to Work on and Will improve over time!
 We will have to look and see.
+
