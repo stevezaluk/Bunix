@@ -24,6 +24,7 @@ void reboot_command(const char *args);
 void shutdown_command(const char *args);
 void time_command(const char *args);
 void date_command(const char *args);
+void uptime_command(const char *args);
 
 // List of commands
 static const Command commands[] = {
@@ -33,14 +34,16 @@ static const Command commands[] = {
     {"cpuinfo", cpuinfo_command},
     {"reboot", reboot_command},
     {"shutdown", shutdown_command},
-    {"time=", time_command},
+    {"time", time_command},
     {"date", date_command},
+    {"uptime", uptime_command},
     {NULL, NULL}
 };
 
 // Initialize the shell
 int shell_init(void) {
     vga_puts(SHELL_PROMPT);
+    uptime_init();  // Initialize uptime
     return 0;
 }
 
