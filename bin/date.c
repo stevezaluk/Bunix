@@ -4,20 +4,19 @@
 
 void date_command(const char *args) {
     struct rtc_date date;
-    
-    // Read full date information
     rtc_read_full(&date);
-    
-    // Display the date
+
     vga_puts("Date: ");
     vga_putdec(date.day, 2);
     vga_putchar('/');
     vga_putdec(date.month, 2);
     vga_putchar('/');
     vga_putdec(2000 + date.year, 4);
-    
-    // Display day of week if available
+
+    // Calculate and adjust weekday
     uint8_t weekday = day_of_week(date.day, date.month, date.year);
+    weekday = (weekday + 6) % 7;  // Fix mapping
+
     vga_puts(" (");
     switch (weekday) {
         case 0: vga_puts("Sun"); break;

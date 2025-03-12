@@ -26,7 +26,6 @@ SRCS = \
 
 # Bin folder source files
 BIN_SRCS = \
-    $(BIN_DIR)/help.c \
     $(BIN_DIR)/clear.c \
     $(BIN_DIR)/echo.c \
     $(BIN_DIR)/cpuinfo.c \

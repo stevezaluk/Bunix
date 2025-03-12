@@ -13,6 +13,7 @@ static const char *SHELL_PROMPT = "$ ";
 typedef struct {
     const char *name;
     void (*func)(const char *);
+    const char *description; // Description field
 } Command;
 
 // Command declarations
@@ -28,17 +29,29 @@ void uptime_command(const char *args);
 
 // List of commands
 static const Command commands[] = {
-    {"help", help_command},
-    {"clear", clear_command},
-    {"echo", echo_command},
-    {"cpuinfo", cpuinfo_command},
-    {"reboot", reboot_command},
-    {"shutdown", shutdown_command},
-    {"time", time_command},
-    {"date", date_command},
-    {"uptime", uptime_command},
-    {NULL, NULL}
+    {"help", help_command, "Show this help message"},
+    {"clear", clear_command, "Clear the screen"},
+    {"echo", echo_command, "Print text to the screen"},
+    {"cpuinfo", cpuinfo_command, "Display CPU information"},
+    {"reboot", reboot_command, "Reboot the system"},
+    {"shutdown", shutdown_command, "Shutdown the system"},
+    {"time", time_command, "Show the current time"},
+    {"date", date_command, "Show the current date"},
+    {"uptime", uptime_command, "Show system uptime"},
+    {NULL, NULL, NULL} // End of array
 };
+
+// Help command implementation
+void help_command(const char *args) {
+    vga_puts("Available commands:\n");
+    for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
+        vga_puts("  ");
+        vga_puts(cmd->name); // Print command name
+        vga_puts(" - ");     // Add separator
+        vga_puts(cmd->description); // Print command description
+        vga_puts("\n");
+    }
+}
 
 // Initialize the shell
 int shell_init(void) {

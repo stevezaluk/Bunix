@@ -66,12 +66,12 @@ uint8_t days_in_month(uint8_t month, uint8_t year) {
 }
 
 uint8_t day_of_week(uint8_t day, uint8_t month, uint8_t year) {
-    // Zeller's congruence (returns 0=Saturday, 1=Sunday, ..., 6=Friday)
     if (month < 3) {
         month += 12;
-        year--;
+        year--;  // Adjust year for January/February
     }
-    return (day + (13 * (month + 1)) / 5 + year + year / 4 + 5) % 7;
+    uint8_t century = 20;  // Since year is 2000-based (00-99)
+    return (day + (13 * (month + 1) / 5 + year + year / 4 + century / 4 + 5 * century)) % 7;
 }
 
 // DST Calculations
