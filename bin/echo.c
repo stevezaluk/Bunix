@@ -7,10 +7,10 @@ void echo_command(const char *args) {
         vga_puts("echo: missing argument\nUsage: echo <text>\n");
         return;
     }
-    
-    // Skip leading whitespace
+
+    // Skip leading whitespace only if entire input is whitespace
     while (*args == ' ') args++;
-    
+
     vga_puts(args);
     vga_puts("\n");
 }

@@ -5,7 +5,7 @@
 static void system_fallback_reset() {
     // Create a null IDT descriptor
     uint8_t idt_descriptor[6] = {0};
-    
+
     // Load the null IDT descriptor
     __asm__ volatile (
         "lidt (%0)"
@@ -13,7 +13,7 @@ static void system_fallback_reset() {
         : "r" (idt_descriptor)
         : "memory"
     );
-    
+
     // Trigger a triple fault by dividing by zero
     __asm__ volatile ("int $0");
 }

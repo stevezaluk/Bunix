@@ -8,89 +8,89 @@
 int main(void);
 void display_banner(void);
 void kernel_halt(void);
+void panic(const char *message);
 
 // Multiboot header must be in the .multiboot section
-__attribute__((section(".multiboot")))
+__attribute__((section(".multiboot"), aligned(4)))
 const struct multiboot_header multiboot_header = {
     MULTIBOOT_HEADER_MAGIC,
     MULTIBOOT_HEADER_FLAGS,
     -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 };
 
-// Entry point for the kernel
-void _start(void) {
-    main(); // Call the main function
-    kernel_halt(); // Halt the CPU
+// Kernel panic handler
+void panic(const char *message) {
+    vga_puts("\nKERNEL PANIC: ");
+    vga_puts(message);
+    vga_puts("\nSystem halted!\n");
+    kernel_halt();
 }
 
-// Function to display the ASCII art banner
-void display_banner(void) {
-    // Read the current date from the RTC
-    struct rtc_date current_date;
-    rtc_read_full(&current_date);
-
-    // Display the ASCII art banner for "BUNIX"
-    vga_puts("  ____  _    _ _   _ _______   __\n");
-    vga_puts(" |  _ \\| |  | | \\ | |_   _\\ \\ / /\n");
-    vga_puts(" | |_) | |  | |  \\| | | |  \\ V / \n");
-    vga_puts(" |  _ <| |  | | . ` | | |   > <  \n");
-    vga_puts(" | |_) | |__| | |\\  |_| |_ / . \\ \n");
-    vga_puts(" |____/ \\____/|_| \\_|_____/_/ \\_\\\n");
-
-
-    vga_puts("\n");
-    vga_puts("Welcome to Bunix - A Unix-Like Operating System\n");
-    vga_puts("Build Date: " __DATE__ " " __TIME__ "\n");
-
-    // Display the copyright with the current year
-    vga_puts("Copyright (C) 20"); // Start of the copyright line
-    vga_putchar('0' + (current_date.year / 10)); // Tens digit of the year
-    vga_putchar('0' + (current_date.year % 10)); // Units digit of the year
-    vga_puts(" Bunix Team. All rights reserved.\n");
-
-    vga_puts("\n");
-    vga_puts("Type 'help' for a list of available commands.\n");
-    vga_puts("For more information, visit: https://github.com/0x16000/Bunix\n");
-
-    vga_puts("\n");
-}
-
-// Function to halt the CPU
+// Halt the CPU permanently
 void kernel_halt(void) {
+    __asm__ volatile ("cli"); // Disable interrupts
     while (1) {
-        __asm__ volatile ("hlt"); // Use the HLT instruction to halt the CPU
+        __asm__ volatile ("hlt"); // Halt CPU
     }
 }
 
+// Display system banner
+void display_banner(void) {
+    struct rtc_date current_date;
+    rtc_read_full(&current_date); // No error checking since it's void
+
+    vga_puts(
+        "  ____  _    _ _   _ _______   __\n"
+        " |  _ \\| |  | | \\ | |_   _\\ \\ / /\n"
+        " | |_) | |  | |  \\| | | |  \\ V / \n"
+        " |  _ <| |  | | . ` | | |   > <  \n"
+        " | |_) | |__| | |\\  |_| |_ / . \\ \n"
+        " |____/ \\____/|_| \\_|_____/_/ \\_\\\n"
+        "\n"
+        "Welcome to Bunix - A Unix-Like Operating System\n"
+        "Build Date: " __DATE__ " " __TIME__ "\n"
+    );
+
+    // Display copyright with 4-digit year
+    vga_puts("Copyright (C) 20");
+    vga_putchar('0' + ((current_date.year % 100) / 10));
+    vga_putchar('0' + (current_date.year % 10));
+    vga_puts(" Bunix Team. All rights reserved.\n\n");
+
+    vga_puts("Type 'help' for available commands\n");
+    vga_puts("Project URL: https://github.com/0x16000/Bunix\n\n");
+}
+
+// Entry point called by bootloader
+void _start(void) {
+    main();
+    kernel_halt();
+}
+
+// Main kernel initialization
 int main(void) {
-    // Initialize the VGA text mode
-    if (vga_initialize() != 0) {  // Changed to check for non-zero return value
-        // Handle VGA initialization failure
+    // Initialize critical subsystems
+    if (vga_initialize() != 0) {
+        // If VGA fails, we can't display anything - just halt
         kernel_halt();
     }
 
-    // Display the ASCII art banner
     display_banner();
 
-    // Initialize the keyboard driver
-    if (kb_init() != 0) {  // Changed to check for non-zero return value
-        // Handle keyboard initialization failure
-        vga_puts("Keyboard initialization failed!\n");
-        kernel_halt();
+    // Initialize hardware components
+    if (kb_init() != 0) {
+        panic("Keyboard initialization failed");
     }
 
-    // Initialize the shell
-    if (shell_init() != 0) {  // Changed to check for non-zero return value
-        // Handle shell initialization failure
-        vga_puts("Shell initialization failed!\n");
-        kernel_halt();
+    // Initialize system services
+    if (shell_init() != 0) {
+        panic("Shell initialization failed");
     }
 
-    // Run the shell
+    // Start interactive shell
     shell_run();
 
-    // The shell_run function should never return, but if it does, halt the CPU
-    kernel_halt();
-
-    return 0; // This return statement is unreachable
+    // Should never reach here
+    panic("Unexpected return from shell");
+    return 0;
 }

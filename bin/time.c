@@ -11,7 +11,7 @@ void display_time(const struct rtc_date *date, const char *label) {
     vga_putdec(date->minute, 2);
     vga_putchar(':');
     vga_putdec(date->second, 2);
-    
+
     if (!date->is_24hour) {
         vga_puts(date->is_pm ? " PM" : " AM");
     }
@@ -21,14 +21,14 @@ void display_time(const struct rtc_date *date, const char *label) {
 void time_command(const char *args) {
     struct rtc_date date;
     rtc_read_full(&date);
-    
+
     // Display UTC time
     display_time(&date, "UTC Time:");
-    
+
     // Handle timezone arguments
     if (args != NULL) {
         struct rtc_date local = date;
-        
+
         if (strcmp(args, "de") == 0) {
             // Germany timezone (CET/CEST)
             int offset = is_dst_eu(local.month, local.day, local.year) ? 2 : 1;

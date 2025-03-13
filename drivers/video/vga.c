@@ -1,6 +1,6 @@
 #include "../../include/video/vga.h"
 #include "../../include/kernel/ports/ports.h"
-#include <string.h> // For memcpy, memmove
+#include <string.h>
 
 // VGA memory address
 static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
@@ -29,8 +29,7 @@ static uint16_t vga_double_buffer[VGA_HEIGHT * VGA_WIDTH];
 
 // Scroll the screen up by one line
 static void vga_scroll(void) {
-    // Move all rows up by one
-    memcpy(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
+    memmove(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
 
     // Clear the bottom line
     uint16_t blank = vga_entry(' ', vga_color);

@@ -112,5 +112,3 @@ char kb_getchar(void) {
 
     return c;
 }
-
-// Additional functions for extended scancodes, debouncing, etc. can be added here

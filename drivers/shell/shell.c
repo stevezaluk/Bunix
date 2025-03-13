@@ -84,7 +84,7 @@ void shell_run(void) {
             // Parse the input command
             bool command_found = false;
             for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
-                if (strncmp(input, cmd->name, strlen(cmd->name)) == 0) {
+                if (strcmp(input, cmd->name) == 0) {
                     cmd->func(input + strlen(cmd->name));
                     command_found = true;
                     break;
