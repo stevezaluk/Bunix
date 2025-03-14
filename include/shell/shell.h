@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SHELL_PROMPT "root@Bunix:/# "
+
 // Constants
 #define MAX_HISTORY_SIZE 10  // Define the size of the command history buffer
 
@@ -14,6 +16,7 @@ typedef struct {
 } Command;
 
 // Command function prototypes
+void print_shell_prompt(void);
 void help_command(const char *args);
 void clear_command(const char *args);
 void echo_command(const char *args);
@@ -23,6 +26,8 @@ void shutdown_command(const char *args);
 void time_command(const char *args);
 void date_command(const char *args);
 void uptime_command(const char *args);
+void whoami_command(const char *args);
+void meminfo_command(const char *args);
 
 // Shell functions
 int shell_init(void);

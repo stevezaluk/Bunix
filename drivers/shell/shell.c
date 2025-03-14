@@ -7,7 +7,26 @@
 #include <stddef.h>
 
 // Shell prompt
-static const char *SHELL_PROMPT = "$ ";
+void print_shell_prompt(void) {
+    // Set color for "root@Bunix"
+    vga_set_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK); // Green text on black background
+    vga_puts("root@Bunix");
+
+    // Set color for ":"
+    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK); // Light grey text on black background
+    vga_puts(":");
+
+    // Set color for "/"
+    vga_set_color(VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK); // Light blue text on black background
+    vga_puts("/");
+
+    // Set color for "# "
+    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK); // Light grey text on black background
+    vga_puts("# ");
+
+    // Reset to default text color (light grey on black)
+    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+}
 
 // List of commands
 Command commands[] = {
@@ -20,6 +39,8 @@ Command commands[] = {
     {"time", time_command, "Show the current time"},
     {"date", date_command, "Show the current date"},
     {"uptime", uptime_command, "Show system uptime"},
+    {"whoami", whoami_command, "Print the current user"},
+    {"meminfo", meminfo_command, "Display memory information"},
     {NULL, NULL, NULL} // End of array
 };
 
@@ -35,7 +56,7 @@ void add_to_history(const char *input) {
 
 // Initialize the shell
 int shell_init(void) {
-    vga_puts(SHELL_PROMPT);
+    print_shell_prompt();
     uptime_init();  // Initialize uptime
     return 0;
 }
@@ -70,7 +91,7 @@ void shell_run(void) {
 
             if (command_name == NULL) {
                 // Empty input, just reprint the prompt
-                vga_puts(SHELL_PROMPT);
+                print_shell_prompt();
                 continue;
             }
 
@@ -85,14 +106,16 @@ void shell_run(void) {
             }
 
             if (!command_found) {
+                vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK); // Set foreground and background colors
                 vga_puts("Command not found: ");
                 vga_puts(command_name);
                 vga_puts("\n");
+                vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK); // Reset to default colors
             }
 
             // Reset input buffer and reprint prompt
             index = 0;
-            vga_puts(SHELL_PROMPT);
+            print_shell_prompt();
         }
         // Handle regular characters
         else {

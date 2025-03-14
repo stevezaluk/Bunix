@@ -166,8 +166,8 @@ void vga_update_cursor(int x, int y) {
 }
 
 // Set the current text color
-void vga_set_color(uint8_t color) {
-    vga_color = color;
+void vga_set_color(enum vga_color fg, enum vga_color bg) {
+    vga_color = vga_entry_color(fg, bg);
 }
 
 // Get the current text color

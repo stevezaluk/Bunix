@@ -53,7 +53,7 @@ void vga_puts(const char* str);       // Print a string
 void vga_enable_cursor(void);         // Enable the cursor
 void vga_disable_cursor(void);        // Disable the cursor
 void vga_update_cursor(int x, int y); // Update cursor position
-void vga_set_color(uint8_t color);    // Set text color
+void vga_set_color(enum vga_color fg, enum vga_color bg); // Set text color
 void vga_move_cursor(int x, int y);   // Move cursor to a specific position
 void vga_swap_buffers(void);          // Swap double buffers (if enabled)
 void vga_set_buffer(uint16_t* buffer);// Set a custom buffer
