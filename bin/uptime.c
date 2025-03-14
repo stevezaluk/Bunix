@@ -8,20 +8,40 @@ static struct rtc_date boot_time;
 
 // Function to initialize the boot time
 void uptime_init() {
-    rtc_read_full(&boot_time);
+    rtc_read_full(&boot_time); // Read the boot time from RTC
+}
+
+// Function to calculate seconds since epoch for a given rtc_date
+static uint32_t rtc_date_to_seconds(const struct rtc_date *date) {
+    uint32_t seconds = 0;
+
+    // Add years (2000-2099)
+    for (uint16_t y = 2000; y < 2000 + date->year; y++) {
+        seconds += is_leap_year(y - 2000) ? 31622400 : 31536000; // 366 or 365 days
+    }
+
+    // Add months
+    for (uint8_t m = 1; m < date->month; m++) {
+        seconds += days_in_month(m, date->year) * 86400;
+    }
+
+    // Add days, hours, minutes, and seconds
+    seconds += (date->day - 1) * 86400;
+    seconds += date->hour * 3600;
+    seconds += date->minute * 60;
+    seconds += date->second;
+
+    return seconds;
 }
 
 // Function to calculate uptime in seconds
 uint32_t calculate_uptime() {
     struct rtc_date current_time;
-    rtc_read_full(&current_time);
+    rtc_read_full(&current_time); // Read the current time from RTC
 
     // Convert boot time and current time to seconds since epoch
-    uint32_t boot_seconds = boot_time.second + boot_time.minute * 60 + boot_time.hour * 3600 +
-                            boot_time.day * 86400 + boot_time.month * 2629746 + boot_time.year * 31556952;
-
-    uint32_t current_seconds = current_time.second + current_time.minute * 60 + current_time.hour * 3600 +
-                               current_time.day * 86400 + current_time.month * 2629746 + current_time.year * 31556952;
+    uint32_t boot_seconds = rtc_date_to_seconds(&boot_time);
+    uint32_t current_seconds = rtc_date_to_seconds(&current_time);
 
     // Calculate uptime
     return current_seconds - boot_seconds;

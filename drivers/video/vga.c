@@ -29,7 +29,11 @@ static uint16_t vga_double_buffer[VGA_HEIGHT * VGA_WIDTH];
 
 // Scroll the screen up by one line
 static void vga_scroll(void) {
-    memmove(vga_buffer, vga_buffer + VGA_WIDTH, (VGA_HEIGHT - 1) * VGA_WIDTH * sizeof(uint16_t));
+    for (size_t y = 0; y < VGA_HEIGHT - 1; y++) {
+        for (size_t x = 0; x < VGA_WIDTH; x++) {
+            vga_buffer[y * VGA_WIDTH + x] = vga_buffer[(y + 1) * VGA_WIDTH + x];
+        }
+    }
 
     // Clear the bottom line
     uint16_t blank = vga_entry(' ', vga_color);
@@ -76,6 +80,9 @@ void vga_putchar(char c) {
         } else if (vga_row > 0) {
             vga_row--;
             vga_column = VGA_WIDTH - 1;
+        } else {
+            // Cursor is at the top-left corner; do nothing
+            return;
         }
         size_t index = vga_row * VGA_WIDTH + vga_column;
         vga_buffer[index] = vga_entry(' ', vga_color);
@@ -123,6 +130,7 @@ void vga_putdec(uint32_t value, uint8_t digits) {
 
 // Print a string
 void vga_puts(const char* str) {
+    if (!str) return; // Null pointer check
     while (*str) {
         vga_putchar(*str++);
     }
@@ -162,6 +170,11 @@ void vga_set_color(uint8_t color) {
     vga_color = color;
 }
 
+// Get the current text color
+uint8_t vga_get_color(void) {
+    return vga_color;
+}
+
 // Move the cursor to a specific position
 void vga_move_cursor(int x, int y) {
     if (x >= 0 && x < VGA_WIDTH && y >= 0 && y < VGA_HEIGHT) {
@@ -169,6 +182,12 @@ void vga_move_cursor(int x, int y) {
         vga_row = y;
         vga_update_cursor(vga_column, vga_row);
     }
+}
+
+// Get the current cursor position
+void vga_get_cursor(int *x, int *y) {
+    *x = vga_column;
+    *y = vga_row;
 }
 
 // Swap double buffers
@@ -179,4 +198,10 @@ void vga_swap_buffers(void) {
 // Set a custom buffer
 void vga_set_buffer(uint16_t* buffer) {
     vga_buffer = buffer;
+}
+
+// Initialize the double buffer
+void vga_init_double_buffer(void) {
+    vga_buffer = vga_double_buffer;
+    vga_clear();
 }

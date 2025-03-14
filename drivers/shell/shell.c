@@ -9,26 +9,8 @@
 // Shell prompt
 static const char *SHELL_PROMPT = "$ ";
 
-// Command structure
-typedef struct {
-    const char *name;
-    void (*func)(const char *);
-    const char *description; // Description field
-} Command;
-
-// Command declarations
-void help_command(const char *args);
-void clear_command(const char *args);
-void echo_command(const char *args);
-void cpuinfo_command(const char *args);
-void reboot_command(const char *args);
-void shutdown_command(const char *args);
-void time_command(const char *args);
-void date_command(const char *args);
-void uptime_command(const char *args);
-
 // List of commands
-static const Command commands[] = {
+Command commands[] = {
     {"help", help_command, "Show this help message"},
     {"clear", clear_command, "Clear the screen"},
     {"echo", echo_command, "Print text to the screen"},
@@ -41,16 +23,14 @@ static const Command commands[] = {
     {NULL, NULL, NULL} // End of array
 };
 
-// Help command implementation
-void help_command(const char *args) {
-    vga_puts("Available commands:\n");
-    for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
-        vga_puts("  ");
-        vga_puts(cmd->name); // Print command name
-        vga_puts(" - ");     // Add separator
-        vga_puts(cmd->description); // Print command description
-        vga_puts("\n");
-    }
+// Command history
+static char history[MAX_HISTORY_SIZE][256];
+static int history_index = 0;
+
+// Add a command to history
+void add_to_history(const char *input) {
+    strncpy(history[history_index], input, sizeof(history[history_index]) - 1);
+    history_index = (history_index + 1) % MAX_HISTORY_SIZE;
 }
 
 // Initialize the shell
@@ -81,19 +61,32 @@ void shell_run(void) {
             input[index] = '\0';
             vga_puts("\n");
 
+            // Add command to history
+            add_to_history(input);
+
             // Parse the input command
+            char *command_name = strtok(input, " "); // Extract the command name
+            char *args = strtok(NULL, "");           // Extract the rest of the input as arguments
+
+            if (command_name == NULL) {
+                // Empty input, just reprint the prompt
+                vga_puts(SHELL_PROMPT);
+                continue;
+            }
+
+            // Look up the command in the command table
             bool command_found = false;
             for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
-                if (strcmp(input, cmd->name) == 0) {
-                    cmd->func(input + strlen(cmd->name));
+                if (strcmp(command_name, cmd->name) == 0) {
+                    cmd->func(args); // Pass the arguments to the command function
                     command_found = true;
                     break;
                 }
             }
 
-            if (!command_found && input[0] != '\0') {
+            if (!command_found) {
                 vga_puts("Command not found: ");
-                vga_puts(input);
+                vga_puts(command_name);
                 vga_puts("\n");
             }
 

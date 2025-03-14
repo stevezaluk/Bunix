@@ -33,7 +33,8 @@ BIN_SRCS = \
     $(BIN_DIR)/shutdown.c \
     $(BIN_DIR)/time.c \
     $(BIN_DIR)/date.c \
-    $(BIN_DIR)/uptime.c  # Added uptime.c
+    $(BIN_DIR)/uptime.c \
+	$(BIN_DIR)/help.c \
 
 # Object files
 OBJS = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRCS))

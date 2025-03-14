@@ -151,3 +151,43 @@ size_t strspn(const char *s, const char *accept) {
     }
     return count;
 }
+
+// Tokenize a string
+char *strtok(char *str, const char *delim) {
+    static char *last_token = NULL;
+    char *start, *end;
+
+    if (str != NULL) {
+        last_token = str;
+    }
+
+    if (last_token == NULL || *last_token == '\0') {
+        return NULL;
+    }
+
+    // Skip leading delimiters
+    start = last_token;
+    while (*start && strchr(delim, *start)) {
+        start++;
+    }
+
+    if (*start == '\0') {
+        last_token = NULL;
+        return NULL;
+    }
+
+    // Find the end of the token
+    end = start;
+    while (*end && !strchr(delim, *end)) {
+        end++;
+    }
+
+    if (*end == '\0') {
+        last_token = NULL;
+    } else {
+        *end = '\0';
+        last_token = end + 1;
+    }
+
+    return start;
+}

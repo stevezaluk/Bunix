@@ -25,13 +25,6 @@ static const char kb_shift_scancode_to_ascii[128] = {
 };
 
 // Keyboard state structure
-typedef struct {
-    bool shift_pressed;
-    bool ctrl_pressed;
-    bool alt_pressed;
-    bool caps_lock;
-} kb_state_t;
-
 static kb_state_t kb_state = {false, false, false, false};
 
 // Initialize the keyboard driver
@@ -42,6 +35,59 @@ int kb_init(void) {
     kb_state.alt_pressed = false;
     kb_state.caps_lock = false;
     return 0;
+}
+
+// Handle key release events
+static void handle_key_release(uint8_t scancode) {
+    switch (scancode) {
+        case 0x2A: // Left Shift
+        case 0x36: // Right Shift
+            kb_state.shift_pressed = false;
+            break;
+        case 0x1D: // Ctrl
+            kb_state.ctrl_pressed = false;
+            break;
+        case 0x38: // Alt
+            kb_state.alt_pressed = false;
+            break;
+    }
+}
+
+// Handle key press events
+static void handle_key_press(uint8_t scancode) {
+    switch (scancode) {
+        case 0x2A: // Left Shift
+        case 0x36: // Right Shift
+            kb_state.shift_pressed = true;
+            break;
+        case 0x1D: // Ctrl
+            kb_state.ctrl_pressed = true;
+            break;
+        case 0x38: // Alt
+            kb_state.alt_pressed = true;
+            break;
+        case 0x3A: // Caps Lock
+            kb_state.caps_lock = !kb_state.caps_lock; // Toggle Caps Lock state
+            break;
+    }
+}
+
+// Convert scancode to ASCII
+static char scancode_to_ascii(uint8_t scancode) {
+    if (scancode >= 128) return 0;
+
+    bool shift = kb_state.shift_pressed;
+    bool caps_lock = kb_state.caps_lock;
+
+    // Determine the effective case
+    if (caps_lock) {
+        // Caps Lock is on: invert the shift state for letters only
+        if (kb_scancode_to_ascii[scancode] >= 'a' && kb_scancode_to_ascii[scancode] <= 'z') {
+            shift = !shift;
+        }
+    }
+
+    return shift ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
 }
 
 // Read a character from the keyboard
@@ -58,54 +104,15 @@ char kb_getchar(void) {
 
         // Handle key release events
         if (scancode & 0x80) {
-            uint8_t released_scancode = scancode & 0x7F;
-            switch (released_scancode) {
-                case 0x2A: // Left Shift
-                case 0x36: // Right Shift
-                    kb_state.shift_pressed = false;
-                    break;
-                case 0x1D: // Ctrl
-                    kb_state.ctrl_pressed = false;
-                    break;
-                case 0x38: // Alt
-                    kb_state.alt_pressed = false;
-                    break;
-            }
+            handle_key_release(scancode & 0x7F);
             continue;
         }
 
         // Handle key press events
-        switch (scancode) {
-            case 0x2A: // Left Shift
-            case 0x36: // Right Shift
-                kb_state.shift_pressed = true;
-                continue;
-            case 0x1D: // Ctrl
-                kb_state.ctrl_pressed = true;
-                continue;
-            case 0x38: // Alt
-                kb_state.alt_pressed = true;
-                continue;
-            case 0x3A: // Caps Lock
-                kb_state.caps_lock = !kb_state.caps_lock; // Toggle Caps Lock state
-                continue;
-        }
+        handle_key_press(scancode);
 
         // Convert the scancode to ASCII
-        if (scancode < 128) {
-            bool shift = kb_state.shift_pressed;
-            bool caps_lock = kb_state.caps_lock;
-
-            // Determine the effective case
-            if (caps_lock) {
-                // Caps Lock is on: invert the shift state for letters only
-                if (kb_scancode_to_ascii[scancode] >= 'a' && kb_scancode_to_ascii[scancode] <= 'z') {
-                    shift = !shift;
-                }
-            }
-
-            c = shift ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
-        }
+        c = scancode_to_ascii(scancode);
 
         if (c != 0) break;
     }
