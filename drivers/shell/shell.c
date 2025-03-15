@@ -41,6 +41,7 @@ Command commands[] = {
     {"uptime", uptime_command, "Show system uptime"},
     {"whoami", whoami_command, "Print the current user"},
     {"meminfo", meminfo_command, "Display memory information"},
+    {"maxwell", maxwell_command, "maxwell."},
     {NULL, NULL, NULL} // End of array
 };
 
