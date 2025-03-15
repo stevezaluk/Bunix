@@ -3,7 +3,7 @@
 #include "../include/video/vga.h"
 #include "../include/lib/string.h"
 
-char cowsays[400] = "\n\n"
+char cowsays[100] = "\n\n"
                     "    ^__^\n"
                     "    (oo)_______\n"
                     "    (__)       )>\n"
@@ -61,12 +61,11 @@ void cowsay_command(const char *args) {
         vga_puts(" >");
         
     }
-
-    
-
     
     vga_puts("\n");
 
+    
+    // Add a corresponding amount of dashes(-)
     for(int i = 0; i < arg_len + 4; i++) {
         vga_puts("-");
     }
