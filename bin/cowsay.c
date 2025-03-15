@@ -3,18 +3,16 @@
 #include "../include/video/vga.h"
 #include "../include/lib/string.h"
 
-char cowsays[100] = "\n\n"
+char cowsays[50] = "\n\n"
                     "    ^__^\n"
                     "    (oo)_______\n"
                     "    (__)       )>\n"
                     "       II---w II\n"
                     "       II     II\n";
 
-
-                  
-
 void cowsay_command(const char *args) {
     int arg_len = 0;
+    
     // Check if arguments are NULL or empty
     if (args == NULL || *args == '\0') {
         vga_puts("cowsay: missing argument\nUsage: cowsay <text>\n");
@@ -31,50 +29,36 @@ void cowsay_command(const char *args) {
     }
 
     vga_puts("< ");
+    
     // Handle quoted arguments (both single and double quotes)
+    char quote = '\0';
     if (*args == '\'' || *args == '"') {
-        char quote = *args;
+        quote = *args;
         args++; // Move past the opening quote
-
-        // Print characters until the closing quote is found
-        while (*args != '\0' && *args != quote) {
-            vga_putchar(*args); // Use vga_putchar instead of vga_putc
-            arg_len++;
-            args++;
-        }
-
-        // If the closing quote is missing, print an error
-        if (*args != quote) {
-            vga_puts("\necho: missing closing quote\n");
-            return;
-        }
-
-        args++; // Move past the closing quote
-    } else {
-        // Print the rest of the arguments as-is
-        while (*args != '\0') {
-            vga_putchar(*args); // Use vga_putchar instead of vga_putc
-            arg_len++;
-            args++;
-        }
-
-        vga_puts(" >");
-        
     }
     
-    vga_puts("\n");
+    // Print characters until the closing quote or end of string
+    while (*args != '\0' && (quote ? *args != quote : 1)) {
+        vga_putchar(*args);
+        arg_len++;
+        args++;
+    }
 
-    
+    // If closing quote is missing
+    if (quote && *args != quote) {
+        vga_puts("\necho: missing closing quote\n");
+        return;
+    }
+
+    args++; // Move past the closing quote, if present
+    vga_puts(" >\n");
+
     // Add a corresponding amount of dashes(-)
-    for(int i = 0; i < arg_len + 4; i++) {
-        vga_puts("-");
+    for (int i = 0; i < arg_len + 4; i++) {
+        vga_putchar('-');
     }
 
-    
-    
+    vga_puts("\n");
     vga_puts(cowsays);
-
-
-
-    vga_putchar('\n'); // Use vga_putchar for newline
+    vga_putchar('\n');
 }
