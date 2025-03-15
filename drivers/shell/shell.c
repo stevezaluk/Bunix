@@ -42,6 +42,7 @@ Command commands[] = {
     {"whoami", whoami_command, "Print the current user"},
     {"meminfo", meminfo_command, "Display memory information"},
     {"maxwell", maxwell_command, "Display ASCII art of maxwell.(for a long time)"},
+    {"cowsay", cowsay_command, "Cow says."},
     {NULL, NULL, NULL} // End of array
 };
 

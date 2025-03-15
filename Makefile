@@ -39,7 +39,9 @@ BIN_SRCS = \
     $(BIN_DIR)/uptime.c \
     $(BIN_DIR)/help.c \
     $(BIN_DIR)/whoami.c \
-    $(BIN_DIR)/meminfo.c
+    $(BIN_DIR)/meminfo.c \
+    $(BIN_DIR)/maxwell.c \
+    $(BIN_DIR)/cowsay.c
 
 # Object files
 OBJS = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRCS))
