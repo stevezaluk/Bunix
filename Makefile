@@ -40,7 +40,6 @@ BIN_SRCS = \
     $(BIN_DIR)/help.c \
     $(BIN_DIR)/whoami.c \
     $(BIN_DIR)/meminfo.c \
-    $(BIN_DIR)/maxwell.c \
     $(BIN_DIR)/cowsay.c
 
 # Object files
@@ -82,7 +81,7 @@ $(ISO_IMAGE): $(KERNEL_ELF)
 
 # Rule to run the ISO in QEMU
 run: $(ISO_IMAGE)
-	$(QEMU) -cdrom $(ISO_IMAGE)
+	$(QEMU) -cdrom $(ISO_IMAGE) -m 1024
 
 # Clean up build artifacts
 clean:

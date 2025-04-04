@@ -3,7 +3,7 @@
 #include "../include/video/vga.h"
 #include "../include/lib/string.h"
 
-char cowsays[50] = "\n\n"
+char cowsays[100] = "\n\n"
                     "    ^__^\n"
                     "    (oo)_______\n"
                     "    (__)       )>\n"

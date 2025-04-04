@@ -109,7 +109,7 @@ void display_banner(void) {
         " | |_) | |__| | |\\  |_| |_ / . \\ \n"
         " |____/ \\____/|_| \\_|_____/_/ \\_\\\n"
         "\n"
-        "Welcome to Bunix - A Unix-Like Operating System\n"
+        "Welcome to Bunix - An Unix-Like Operating System\n"
         "Build Date: " __DATE__ " " __TIME__ "\n"
     );
 

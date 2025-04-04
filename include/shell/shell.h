@@ -28,7 +28,6 @@ void date_command(const char *args);
 void uptime_command(const char *args);
 void whoami_command(const char *args);
 void meminfo_command(const char *args);
-void maxwell_command(const char *args);
 void cowsay_command(const char *args);
 
 // Shell functions
