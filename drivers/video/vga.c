@@ -205,3 +205,14 @@ void vga_init_double_buffer(void) {
     vga_buffer = vga_double_buffer;
     vga_clear();
 }
+
+void vga_puthex(uint32_t num) {
+    const char hex_chars[] = "0123456789ABCDEF";
+    vga_puts("0x");
+    
+    // Print each nibble starting from the most significant
+    for (int i = 28; i >= 0; i -= 4) {
+        uint8_t nibble = (num >> i) & 0xF;
+        vga_putchar(hex_chars[nibble]);
+    }
+}

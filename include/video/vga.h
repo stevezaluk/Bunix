@@ -61,5 +61,6 @@ void vga_putdec(uint32_t value, uint8_t digits); // Print a decimal number
 void vga_init_double_buffer(void);    // Initialize double buffer
 void vga_get_cursor(int *x, int *y);  // Get current cursor position
 uint8_t vga_get_color(void);          // Get current color
+void vga_puthex(uint32_t num);
 
 #endif // VGA_H

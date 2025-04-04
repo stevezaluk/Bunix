@@ -25,6 +25,7 @@ SRCS = \
     lib/libc/string/string.c \
     sys/syscall/syscall.c \
     sys/rtc/rtc.c \
+	sys/panic/panic.c \
     mm/mm.c
 
 # Bin folder source files
