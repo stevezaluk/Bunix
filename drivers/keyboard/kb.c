@@ -14,7 +14,7 @@ static const char kb_scancode_to_ascii[128] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-// Shift-scancode to ASCII mapping (for uppercase letters and symbols)
+// Shift-scancode to ASCII mapping
 static const char kb_shift_scancode_to_ascii[128] = {
     0, 27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
     '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
@@ -24,98 +24,93 @@ static const char kb_shift_scancode_to_ascii[128] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-// Keyboard state structure
-static kb_state_t kb_state = {false, false, false, false};
+static kb_state_t kb_state = {
+    false, false, false, false, 
+    false, false  // input_enabled and boot_complete start false
+};
 
-// Initialize the keyboard driver
+// Initialize keyboard
 int kb_init(void) {
-    // Reset keyboard state
     kb_state.shift_pressed = false;
     kb_state.ctrl_pressed = false;
     kb_state.alt_pressed = false;
     kb_state.caps_lock = false;
+    kb_state.input_enabled = false;
+    kb_state.boot_complete = false;
     return 0;
 }
 
-// Handle key release events
-static void handle_key_release(uint8_t scancode) {
-    switch (scancode) {
-        case 0x2A: // Left Shift
-        case 0x36: // Right Shift
-            kb_state.shift_pressed = false;
-            break;
-        case 0x1D: // Ctrl
-            kb_state.ctrl_pressed = false;
-            break;
-        case 0x38: // Alt
-            kb_state.alt_pressed = false;
-            break;
-    }
+// Enable/disable input processing
+void kb_enable_input(bool enable) {
+    kb_state.input_enabled = enable;
 }
 
-// Handle key press events
-static void handle_key_press(uint8_t scancode) {
-    switch (scancode) {
-        case 0x2A: // Left Shift
-        case 0x36: // Right Shift
-            kb_state.shift_pressed = true;
-            break;
-        case 0x1D: // Ctrl
-            kb_state.ctrl_pressed = true;
-            break;
-        case 0x38: // Alt
-            kb_state.alt_pressed = true;
-            break;
-        case 0x3A: // Caps Lock
-            kb_state.caps_lock = !kb_state.caps_lock; // Toggle Caps Lock state
-            break;
-    }
+// Mark boot completion
+void kb_set_boot_complete(bool complete) {
+    kb_state.boot_complete = complete;
 }
 
 // Convert scancode to ASCII
 static char scancode_to_ascii(uint8_t scancode) {
     if (scancode >= 128) return 0;
-
+    
     bool shift = kb_state.shift_pressed;
     bool caps_lock = kb_state.caps_lock;
-
-    // Determine the effective case
-    if (caps_lock) {
-        // Caps Lock is on: invert the shift state for letters only
-        if (kb_scancode_to_ascii[scancode] >= 'a' && kb_scancode_to_ascii[scancode] <= 'z') {
-            shift = !shift;
-        }
+    
+    if (caps_lock && (kb_scancode_to_ascii[scancode] >= 'a') 
+        && (kb_scancode_to_ascii[scancode] <= 'z')) {
+        shift = !shift;
     }
-
-    return shift ? kb_shift_scancode_to_ascii[scancode] : kb_scancode_to_ascii[scancode];
+    
+    return shift ? kb_shift_scancode_to_ascii[scancode] 
+                : kb_scancode_to_ascii[scancode];
 }
 
-// Read a character from the keyboard
+// Handle key release
+static void handle_key_release(uint8_t scancode) {
+    if (!kb_state.boot_complete) return;
+    
+    switch (scancode) {
+        case 0x2A: case 0x36: kb_state.shift_pressed = false; break;
+        case 0x1D: kb_state.ctrl_pressed = false; break;
+        case 0x38: kb_state.alt_pressed = false; break;
+    }
+}
+
+// Handle key press
+static void handle_key_press(uint8_t scancode) {
+    if (!kb_state.boot_complete) return;
+    
+    switch (scancode) {
+        case 0x2A: case 0x36: kb_state.shift_pressed = true; break;
+        case 0x1D: kb_state.ctrl_pressed = true; break;
+        case 0x38: kb_state.alt_pressed = true; break;
+        case 0x3A: kb_state.caps_lock = !kb_state.caps_lock; break;
+    }
+}
+
+// Get character from keyboard
 char kb_getchar(void) {
-    char c = 0;
+    if (!kb_state.input_enabled) return 0;
+    
     uint8_t scancode;
-
     while (1) {
-        // Wait until a key is pressed
+        // Wait for key press
         while ((inb(KB_STATUS_PORT) & 0x01) == 0);
-
-        // Read the scancode
+        
         scancode = inb(KB_DATA_PORT);
-
-        // Handle key release events
+        
+        // Skip releases
         if (scancode & 0x80) {
             handle_key_release(scancode & 0x7F);
             continue;
         }
-
-        // Handle key press events
+        
+        // Handle press
         handle_key_press(scancode);
-
-        // Convert the scancode to ASCII
-        c = scancode_to_ascii(scancode);
-
-        if (c != 0) break;
+        
+        // Convert to ASCII
+        char c = scancode_to_ascii(scancode);
+        if (c != 0) return c;
     }
-
-    return c;
 }

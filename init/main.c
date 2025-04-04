@@ -5,6 +5,7 @@
 #include "../include/kernel/rtc/rtc.h"
 #include "../include/mm/mm.h"
 #include "../include/kernel/panic/panic.h"
+#include "../include/kernel/panic/boot.h"
 
 // Declare multiboot_info_ptr as an external variable
 extern uint32_t multiboot_info_ptr;
@@ -15,7 +16,6 @@ extern uint32_t __bitmap_start;
 int main(void);
 void display_banner(void);
 void kernel_halt(void);
-void boot_screen(void);
 void delay(uint32_t milliseconds);
 
 // Multiboot header must be in the .multiboot section
@@ -39,42 +39,6 @@ void delay(uint32_t milliseconds) {
     for (uint32_t i = 0; i < milliseconds * 1000; i++) {
         __asm__ volatile ("nop"); // No operation (delay)
     }
-}
-
-// Boot screen display
-void boot_screen(void) {
-    vga_clear();
-    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-    // Display memory information
-    struct multiboot_info* mb_info = (struct multiboot_info*)multiboot_info_ptr;
-    if (mb_info->flags & MULTIBOOT_INFO_MEMORY) {
-        uint64_t total_memory_bytes = (mb_info->mem_lower + mb_info->mem_upper) * 1024;
-        vga_puts("Total Memory: ");
-        vga_putdec(total_memory_bytes / (1024 * 1024), 0); // Convert bytes to MB
-        vga_puts(" MB\n");
-        vga_puts("Memory Below 1MB: ");
-        vga_putdec(mb_info->mem_lower, 0);
-        vga_puts(" KB\n");
-        vga_puts("Memory Above 1MB: ");
-        vga_putdec(mb_info->mem_upper, 0);
-        vga_puts(" KB\n");
-    } else {
-        vga_puts("Memory information not available!\n");
-    }
-    // Display additional system information
-    vga_puts("\nInitializing memory manager...\n");
-    mm_init(&__bitmap_start, (mb_info->mem_lower + mb_info->mem_upper) * 1024);
-    vga_puts("Total Frames: ");
-    vga_putdec(mm_get_total_frames(), 0);
-    vga_puts("\n");
-    vga_puts("Free Frames: ");
-    vga_putdec(mm_get_free_frames(), 0);
-    vga_puts("\n");
-    // Delay for 5 seconds (for testing)
-    delay(1000000);
-    // Clear the screen and reset to default color
-    vga_clear();
-    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 }
 
 // Display system banner
@@ -107,25 +71,28 @@ void display_banner(void) {
 
 // Main kernel initialization
 int main(void) {
-    // Initialize critical subsystems
-    if (vga_initialize() != 0) {
-        // If VGA fails, we can't display anything - just halt
-        kernel_halt();
-    }
     // Display boot screen
     boot_screen();
+    
     // Display system banner
     display_banner();
+    
     // Initialize hardware components
     if (kb_init() != 0) {
         panic("Keyboard initialization failed");
     }
+    
     // Initialize system services
     if (shell_init() != 0) {
         panic("Shell initialization failed");
     }
+    
+    // NOW enable keyboard input
+    kb_enable_input(true);
+    
     // Start interactive shell
     shell_run();
+    
     // Should never reach here
     panic("Unexpected return from shell");
     return 0;

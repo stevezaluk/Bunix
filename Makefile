@@ -26,6 +26,8 @@ SRCS = \
     sys/syscall/syscall.c \
     sys/rtc/rtc.c \
 	sys/panic/panic.c \
+	sys/panic/boot.c \
+	sys/arch/x86/cpu.c \
     mm/mm.c
 
 # Bin folder source files
