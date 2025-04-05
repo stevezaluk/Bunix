@@ -3,7 +3,7 @@
 #include "../include/shell/shell.h"
 #include "../include/keyboard/kb.h"
 #include "../include/kernel/rtc/rtc.h"
-#include "../include/mm/mm.h"
+#include "../include/mm/vmm.h"
 #include "../include/kernel/panic/panic.h"
 #include "../include/kernel/panic/boot.h"
 

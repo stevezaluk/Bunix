@@ -29,7 +29,7 @@ SRCS = \
 	sys/panic/boot.c \
 	sys/arch/x86/cpu.c \
 	sys/panic/debug.c \
-    mm/mm.c
+    mm/vmm.c
 
 # Bin folder source files
 BIN_SRCS = \
@@ -45,6 +45,7 @@ BIN_SRCS = \
     $(BIN_DIR)/whoami.c \
     $(BIN_DIR)/meminfo.c \
     $(BIN_DIR)/cowsay.c \
+	$(BIN_DIR)/yes.c \
 	$(BIN_DIR)/uname.c
 
 # Object files

@@ -1,6 +1,6 @@
 #include "../../include/video/vga.h"
 #include "../../include/boot/multiboot.h"
-#include "../../include/mm/mm.h"
+#include "../../include/mm/vmm.h"
 #include "../../include/kernel/panic/panic.h"
 #include "../../include/keyboard/kb.h"
 #include "../../include/shell/shell.h"
@@ -75,6 +75,15 @@ void boot_screen(void) {
     } else {
         DEBUG_INFO("TSC not available, skipping test");
     }
+    
+    // Initialize Virtual Memory Manager
+    DEBUG_INFO("Initializing Virtual Memory Manager");
+    struct multiboot_info* mb_info = (struct multiboot_info*)multiboot_info_ptr;
+    uint64_t total_memory = (mb_info->mem_upper + 1024) * 1024; // Convert to bytes
+    
+    vmm_init((uint32_t*)&__bitmap_start, total_memory);
+    DEBUG_SUCCESS("VMM initialized with %d MB RAM", total_memory / (1024 * 1024));
+    delay(100000);
     
     // Initialize Keyboard
     if (kb_init() != 0) {

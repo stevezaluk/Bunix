@@ -57,6 +57,7 @@ Command commands[] = {
     {"meminfo",    meminfo_command,   "Display memory usage information"},
     {"cowsay",     cowsay_command,    "Configurable talking cow (requires ASCII art)"},
     {"uname",      uname_command,     "Print system information"},
+    {"yes",        yes_command,       "Repedeatly print a string"},
     {NULL, NULL, NULL} // End marker
 };
 
