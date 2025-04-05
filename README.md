@@ -3,7 +3,7 @@
 Bunix all rights reserved.
 --------------------------
 
-Bunix is an Unix-Like Operating System Developed entirely from scratch by one person.
+Bunix is a Unix-Like Operating System Developed entirely from scratch by one person.
 It focuses on perfomance stability and security.
 Updates may slow down sometimes due to school and my personal life.
 
