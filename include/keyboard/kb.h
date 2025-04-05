@@ -8,17 +8,24 @@
 #define KB_STATUS_PORT 0x64
 
 typedef struct {
-    bool shift_pressed;
+    bool shift_pressed;      // Either shift key is pressed
     bool ctrl_pressed;
     bool alt_pressed;
     bool caps_lock;
     bool input_enabled;
-    bool boot_complete;  // New flag to track boot state
+    bool boot_complete;
+    bool left_shift_pressed; // Track left shift separately
+    bool right_shift_pressed; // Track right shift separately
 } kb_state_t;
 
+// Keyboard initialization
 int kb_init(void);
+
+// Input control
 void kb_enable_input(bool enable);
-void kb_set_boot_complete(bool complete);  // New function
+void kb_set_boot_complete(bool complete);
+
+// Key reading
 char kb_getchar(void);
 
 #endif // KB_H

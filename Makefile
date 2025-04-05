@@ -28,6 +28,7 @@ SRCS = \
 	sys/panic/panic.c \
 	sys/panic/boot.c \
 	sys/arch/x86/cpu.c \
+	sys/panic/debug.c \
     mm/mm.c
 
 # Bin folder source files

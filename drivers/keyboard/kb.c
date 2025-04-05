@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// Scancode to ASCII mapping (for US QWERTY keyboard)
+// Scancode to ASCII mapping (US QWERTY)
 static const char kb_scancode_to_ascii[128] = {
     0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
     '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
@@ -25,11 +25,10 @@ static const char kb_shift_scancode_to_ascii[128] = {
 };
 
 static kb_state_t kb_state = {
-    false, false, false, false, 
-    false, false  // input_enabled and boot_complete start false
+    false, false, false, false,
+    false, false, false, false
 };
 
-// Initialize keyboard
 int kb_init(void) {
     kb_state.shift_pressed = false;
     kb_state.ctrl_pressed = false;
@@ -37,59 +36,74 @@ int kb_init(void) {
     kb_state.caps_lock = false;
     kb_state.input_enabled = false;
     kb_state.boot_complete = false;
+    kb_state.left_shift_pressed = false;
+    kb_state.right_shift_pressed = false;
     return 0;
 }
 
-// Enable/disable input processing
 void kb_enable_input(bool enable) {
     kb_state.input_enabled = enable;
 }
 
-// Mark boot completion
 void kb_set_boot_complete(bool complete) {
     kb_state.boot_complete = complete;
 }
 
-// Convert scancode to ASCII
 static char scancode_to_ascii(uint8_t scancode) {
     if (scancode >= 128) return 0;
     
     bool shift = kb_state.shift_pressed;
     bool caps_lock = kb_state.caps_lock;
     
-    if (caps_lock && (kb_scancode_to_ascii[scancode] >= 'a') 
-        && (kb_scancode_to_ascii[scancode] <= 'z')) {
-        shift = !shift;
+    // Handle letters with caps lock
+    char base_char = kb_scancode_to_ascii[scancode];
+    if (base_char >= 'a' && base_char <= 'z') {
+        if (caps_lock) {
+            shift = !shift; // Invert shift for letters when caps lock is on
+        }
     }
     
     return shift ? kb_shift_scancode_to_ascii[scancode] 
                 : kb_scancode_to_ascii[scancode];
 }
 
-// Handle key release
 static void handle_key_release(uint8_t scancode) {
     if (!kb_state.boot_complete) return;
     
     switch (scancode) {
-        case 0x2A: case 0x36: kb_state.shift_pressed = false; break;
+        case 0x2A: // Left shift
+            kb_state.left_shift_pressed = false;
+            kb_state.shift_pressed = kb_state.left_shift_pressed || kb_state.right_shift_pressed;
+            break;
+        case 0x36: // Right shift
+            kb_state.right_shift_pressed = false;
+            kb_state.shift_pressed = kb_state.left_shift_pressed || kb_state.right_shift_pressed;
+            break;
         case 0x1D: kb_state.ctrl_pressed = false; break;
         case 0x38: kb_state.alt_pressed = false; break;
     }
 }
 
-// Handle key press
 static void handle_key_press(uint8_t scancode) {
     if (!kb_state.boot_complete) return;
     
     switch (scancode) {
-        case 0x2A: case 0x36: kb_state.shift_pressed = true; break;
+        case 0x2A: // Left shift
+            kb_state.left_shift_pressed = true;
+            kb_state.shift_pressed = true;
+            break;
+        case 0x36: // Right shift
+            kb_state.right_shift_pressed = true;
+            kb_state.shift_pressed = true;
+            break;
         case 0x1D: kb_state.ctrl_pressed = true; break;
         case 0x38: kb_state.alt_pressed = true; break;
-        case 0x3A: kb_state.caps_lock = !kb_state.caps_lock; break;
+        case 0x3A: // Caps lock
+            kb_state.caps_lock = !kb_state.caps_lock;
+            break;
     }
 }
 
-// Get character from keyboard
 char kb_getchar(void) {
     if (!kb_state.input_enabled) return 0;
     
@@ -100,13 +114,13 @@ char kb_getchar(void) {
         
         scancode = inb(KB_DATA_PORT);
         
-        // Skip releases
+        // Handle key release
         if (scancode & 0x80) {
             handle_key_release(scancode & 0x7F);
             continue;
         }
         
-        // Handle press
+        // Handle key press
         handle_key_press(scancode);
         
         // Convert to ASCII

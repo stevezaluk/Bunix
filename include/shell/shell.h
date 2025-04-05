@@ -34,5 +34,6 @@ void cowsay_command(const char *args);
 int shell_init(void);
 void shell_run(void);
 void uptime_init(void);
+void print_shell_prompt(void);
 
 #endif // SHELL_H
