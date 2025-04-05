@@ -86,7 +86,7 @@ $(ISO_IMAGE): $(KERNEL_ELF)
 
 # Rule to run the ISO in QEMU
 run: $(ISO_IMAGE)
-	$(QEMU) -cdrom $(ISO_IMAGE) -m 1024
+	$(QEMU) -enable-kvm -cdrom $(ISO_IMAGE) -m 1024
 
 # Clean up build artifacts
 clean:
