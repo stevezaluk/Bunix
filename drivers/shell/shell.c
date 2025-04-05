@@ -82,11 +82,15 @@ int shell_init(void) {
 void shell_run(void) {
     char input[256];
     int index = 0;
-
+    
     while (1) {
-        // Read a character from the keyboard
+        // Clear any partial input if we're starting fresh
+        if (index == 0) {
+            kb_flush();
+        }
+        
         char c = kb_getchar();
-
+        
         // Handle backspace
         if (c == '\b') {
             if (index > 0) {
@@ -97,49 +101,40 @@ void shell_run(void) {
         // Handle enter
         else if (c == '\n') {
             input[index] = '\0';
-            vga_puts("\n");
-
-            // Add command to history
-            add_to_history(input);
-
-            // Parse the input command
-            char *command_name = strtok(input, " "); // Extract the command name
-            char *args = strtok(NULL, "");           // Extract the rest of the input as arguments
-
-            if (command_name == NULL) {
-                // Empty input, just reprint the prompt
-                print_shell_prompt();
-                continue;
-            }
-
-            // Look up the command in the command table
-            bool command_found = false;
-            for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
-                if (strcmp(command_name, cmd->name) == 0) {
-                    cmd->func(args); // Pass the arguments to the command function
-                    command_found = true;
-                    break;
+            vga_putchar('\n');
+            
+            if (index > 0) {
+                add_to_history(input);
+                
+                // Parse command
+                char *command_name = strtok(input, " ");
+                char *args = strtok(NULL, "\0");  // Get remaining string
+                
+                bool command_found = false;
+                for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
+                    if (strcmp(command_name, cmd->name) == 0) {
+                        cmd->func(args);
+                        command_found = true;
+                        break;
+                    }
+                }
+                
+                if (!command_found) {
+                    vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+                    vga_puts("Command not found: ");
+                    vga_puts(command_name);
+                    vga_putchar('\n');
+                    vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
                 }
             }
-
-            if (!command_found) {
-                vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK); // Set foreground and background colors
-                vga_puts("Command not found: ");
-                vga_puts(command_name);
-                vga_puts("\n");
-                vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK); // Reset to default colors
-            }
-
-            // Reset input buffer and reprint prompt
+            
             index = 0;
             print_shell_prompt();
         }
         // Handle regular characters
-        else {
-            if (index < sizeof(input) - 1) {
-                input[index++] = c;
-                vga_putchar(c);
-            }
+        else if (index < sizeof(input) - 1) {
+            input[index++] = c;
+            vga_putchar(c);
         }
     }
 }

@@ -18,6 +18,10 @@ typedef struct {
     bool right_shift_pressed; // Track right shift separately
 } kb_state_t;
 
+bool kb_check_escape(void);
+void kb_flush(void);
+bool kb_ctrl_pressed(void);
+
 // Keyboard initialization
 int kb_init(void);
 

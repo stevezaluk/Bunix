@@ -128,3 +128,19 @@ char kb_getchar(void) {
         if (c != 0) return c;
     }
 }
+
+bool kb_check_escape(void) {
+    if (!(inb(KB_STATUS_PORT) & 0x01)) return false;
+    uint8_t scancode = inb(KB_DATA_PORT);
+    return (scancode == 0x01);  // ESC scancode
+}
+
+void kb_flush(void) {
+    while (inb(KB_STATUS_PORT) & 0x01) {
+        inb(KB_DATA_PORT);
+    }
+}
+
+bool kb_ctrl_pressed(void) {
+    return kb_state.ctrl_pressed;
+}
