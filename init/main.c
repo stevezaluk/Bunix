@@ -36,16 +36,18 @@ void display_banner(void) {
     
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     vga_puts(
-        "  ____  _    _ _   _ _______   __\n"
-        " |  _ \\| |  | | \\ | |_   _\\ \\ / /\n"
-        " | |_) | |  | |  \\| | | |  \\ V / \n"
-        " |  _ <| |  | | . ` | | |   > <  \n"
-        " | |_) | |__| | |\\  |_| |_ / . \\ \n"
-        " |____/ \\____/|_| \\_|_____/_/ \\_\\\n"
-        "\n"
-        "Welcome to Bunix - A Unix-Like Operating System\n"
-        "Build Date: " __DATE__ " " __TIME__ "\n"
-    );
+    " /$$$$$$$                      /$$          \n"
+    "| $$__  $$                    |__/          \n"
+    "| $$  \\ $$ /$$   /$$ /$$$$$$$  /$$ /$$   /$$ \n"
+    "| $$$$$$$ | $$  | $$| $$__  $$| $$|  $$ /$$/ \n"
+    "| $$__  $$| $$  | $$| $$  \\ $$| $$ \\  $$$$/  \n"
+    "| $$  \\ $$| $$  | $$| $$  | $$| $$ >$$  $$  \n"
+    "| $$$$$$$/|  $$$$$$/| $$  | $$| $$ /$$/\\  $$ \n"
+    "|_______/  \\______/ |__/  |__/|__/|__/  \\__/ \n"
+    "Welcome to Bunix - A Unix-Like Operating System\n"
+    "Build Date: " __DATE__ " " __TIME__ "\n"
+);
+
     
     vga_puts("Copyright (C) 20");
     vga_putchar('0' + ((current_date.year % 100) / 10));
