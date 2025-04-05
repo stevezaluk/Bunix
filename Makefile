@@ -44,7 +44,8 @@ BIN_SRCS = \
     $(BIN_DIR)/help.c \
     $(BIN_DIR)/whoami.c \
     $(BIN_DIR)/meminfo.c \
-    $(BIN_DIR)/cowsay.c
+    $(BIN_DIR)/cowsay.c \
+	$(BIN_DIR)/uname.c
 
 # Object files
 OBJS = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRCS))

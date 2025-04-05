@@ -29,6 +29,53 @@ void boot_screen(void) {
     DEBUG_SUCCESS("VGA initialized");
     delay(100000);
     
+    // Initialize CPU early (basic identification)
+    cpu_early_init();
+    
+    // Verify CPU is working by performing some basic tests
+    DEBUG_INFO("Verifying CPU functionality...");
+    
+    // Test 1: Check if CPUID is working
+    uint32_t eax, ebx, ecx, edx;
+    cpu_cpuid(0, 0, &eax, &ebx, &ecx, &edx);
+    if (eax == 0 && ebx == 0 && ecx == 0 && edx == 0) {
+        DEBUG_ERROR("CPUID instruction failed");
+        panic("CPU verification failed: CPUID instruction not working\n");
+    }
+    DEBUG_SUCCESS("CPUID instruction verified");
+    
+    // Test 2: Check if basic registers are working
+    uint32_t test_value = 0x12345678;
+    uint32_t read_value;
+    asm volatile (
+        "mov %1, %%eax\n\t"
+        "mov %%eax, %0\n\t"
+        : "=r" (read_value)
+        : "r" (test_value)
+        : "%eax"
+    );
+    if (read_value != test_value) {
+        DEBUG_ERROR("Register test failed");
+        panic("CPU verification failed: Basic register operations not working\n");
+    }
+    DEBUG_SUCCESS("Register operations verified");
+    
+    // Test 3: Check if TSC is working (if available)
+    cpu_info_t cpu_info;
+    cpu_identify(&cpu_info);
+    if (cpu_info.features.tsc) {
+        uint64_t tsc1 = cpu_rdtsc();
+        delay(1000); // Small delay
+        uint64_t tsc2 = cpu_rdtsc();
+        if (tsc2 <= tsc1) {
+            DEBUG_ERROR("TSC not incrementing");
+            panic("CPU verification failed: TSC not working properly\n");
+        }
+        DEBUG_SUCCESS("TSC verified");
+    } else {
+        DEBUG_INFO("TSC not available, skipping test");
+    }
+    
     // Initialize Keyboard
     if (kb_init() != 0) {
         DEBUG_ERROR("Failed to initialize Keyboard");
@@ -41,9 +88,19 @@ void boot_screen(void) {
     DEBUG_INFO("Initializing shell subsystem");
     DEBUG_SUCCESS("Shell initialized");
     delay(100000);
-
+    
     // Display kernel address
     DEBUG_INFO("Kernel running at hex: 0xC0000000");
+    delay(200000);
+    
+    // Display CPU information
+    DEBUG_SUCCESS("CPU verified and running");
+    DEBUG_INFO("CPU Vendor: %s", cpu_info.identity.vendor_id);
+    DEBUG_INFO("CPU Model: %s", cpu_info.identity.brand_string);
+    
+    // Complete CPU initialization
+    cpu_late_init();
+    DEBUG_SUCCESS("Cpu0 fully initialized");
     delay(200000);
     
     // Mark boot complete AFTER all hardware is initialized

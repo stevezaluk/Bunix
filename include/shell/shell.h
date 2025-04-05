@@ -29,6 +29,7 @@ void uptime_command(const char *args);
 void whoami_command(const char *args);
 void meminfo_command(const char *args);
 void cowsay_command(const char *args);
+void uname_command(const char *args);
 
 // Shell functions
 int shell_init(void);
