@@ -15,6 +15,7 @@ ISO_DIR = isodir
 BOOT_DIR = $(ISO_DIR)/boot
 BIN_DIR = bin
 INCLUDE_DIR = include
+USR_BIN_DIR = usr.bin
 
 # Source files
 SRCS = \
@@ -46,7 +47,9 @@ BIN_SRCS = \
     $(BIN_DIR)/meminfo.c \
     $(BIN_DIR)/cowsay.c \
 	$(BIN_DIR)/yes.c \
-	$(BIN_DIR)/uname.c
+	$(BIN_DIR)/uname.c \
+	$(USR_BIN_DIR)/true.c \
+	$(USR_BIN_DIR)/false.c
 
 # Object files
 OBJS = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRCS))

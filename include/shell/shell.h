@@ -15,6 +15,8 @@ typedef struct {
     const char *description;
 } Command;
 
+extern int last_exit_status;
+
 // Command function prototypes
 void print_shell_prompt(void);
 void help_command(const char *args);
@@ -31,6 +33,9 @@ void meminfo_command(const char *args);
 void cowsay_command(const char *args);
 void uname_command(const char *args);
 void yes_command(const char *args);
+void true_main(const char *args);
+void false_main(const char *args);
+int get_last_exit_status(void);
 
 // Shell functions
 int shell_init(void);

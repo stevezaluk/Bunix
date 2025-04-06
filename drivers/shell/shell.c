@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+int last_exit_status = 0;
+
 // Shell prompt that exactly matches Bash's default appearance
 void print_shell_prompt(void) {
     // Username in green (matches Bash's default)
@@ -58,6 +60,8 @@ Command commands[] = {
     {"cowsay",     cowsay_command,    "Configurable talking cow (requires ASCII art)"},
     {"uname",      uname_command,     "Print system information"},
     {"yes",        yes_command,       "Repedeatly print a string"},
+    {"true",       true_main,      "Return success status"},
+    {"false",      false_main,     "Return failure status"},
     {NULL, NULL, NULL} // End marker
 };
 
@@ -111,13 +115,21 @@ void shell_run(void) {
                 char *args = strtok(NULL, "\0");  // Get remaining string
                 
                 bool command_found = false;
-                for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
-                    if (strcmp(command_name, cmd->name) == 0) {
-                        cmd->func(args);
-                        command_found = true;
-                        break;
-                    }
-                }
+		for (const Command *cmd = commands; cmd->name != NULL; cmd++) {
+	    if (strcmp(command_name, cmd->name) == 0) {
+	        // Handle true/false specially
+	        if (strcmp(command_name, "true") == 0) {
+            last_exit_status = 0;
+        } 
+        else if (strcmp(command_name, "false") == 0) {
+            last_exit_status = 1;
+        }
+        cmd->func(args);
+        command_found = true;
+        break;
+    }
+}
+
                 
                 if (!command_found) {
                     vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
@@ -137,4 +149,8 @@ void shell_run(void) {
             vga_putchar(c);
         }
     }
+}
+
+int get_last_exit_status(void) {
+    return last_exit_status;
 }
