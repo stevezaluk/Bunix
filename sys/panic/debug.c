@@ -29,13 +29,13 @@ void debug_print(uint8_t level, uint8_t color, const char* prefix, const char* f
 
     // Print prefix with brackets and color
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-    vga_puts("[");
+    vga_puts("[ ");
     
     vga_set_color(color, VGA_COLOR_BLACK);
     vga_puts(prefix);
     
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-    vga_puts("] ");
+    vga_puts(" ] ");
     
     // Restore label color for message
     vga_set_color(DEBUG_COLOR_LABEL, VGA_COLOR_BLACK);
