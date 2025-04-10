@@ -35,7 +35,6 @@ void uname_command(const char *args);
 void yes_command(const char *args);
 void true_main(const char *args);
 void false_main(const char *args);
-void panic_test(const char *args);
 int get_last_exit_status(void);
 
 // Shell functions
