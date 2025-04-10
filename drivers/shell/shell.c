@@ -60,8 +60,9 @@ Command commands[] = {
     {"cowsay",     cowsay_command,    "Configurable talking cow (requires ASCII art)"},
     {"uname",      uname_command,     "Print system information"},
     {"yes",        yes_command,       "Repedeatly print a string"},
-    {"true",       true_main,      "Return success status"},
-    {"false",      false_main,     "Return failure status"},
+    {"true",       true_main,         "Return success status"},
+    {"false",      false_main,        "Return failure status"},
+    {"panic",      panic_test,        "Trigger kernel panic"},
     {NULL, NULL, NULL} // End marker
 };
 

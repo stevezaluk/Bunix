@@ -32,8 +32,7 @@ struct rtc_date {
     uint8_t hour;
     uint8_t day;
     uint8_t month;
-    uint8_t year;  // Last two digits (00-99)
-    uint8_t century; // Optional, if supported
+    uint16_t year;  // Last two digits (00-99)
     bool is_pm;
     bool is_24hour;
 };
@@ -57,7 +56,7 @@ uint8_t bin_to_bcd(uint8_t bin);
 // Date Calculations
 bool is_leap_year(uint8_t year);
 uint8_t days_in_month(uint8_t month, uint8_t year);
-uint8_t day_of_week(uint8_t day, uint8_t month, uint8_t year);
+uint8_t day_of_week(uint8_t day, uint8_t month, uint16_t year);
 
 // DST Calculations
 bool is_dst_eu(uint8_t month, uint8_t day, uint8_t year);

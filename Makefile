@@ -48,6 +48,7 @@ BIN_SRCS = \
     $(BIN_DIR)/cowsay.c \
 	$(BIN_DIR)/yes.c \
 	$(BIN_DIR)/uname.c \
+	$(BIN_DIR)/panic.c \
 	$(USR_BIN_DIR)/true.c \
 	$(USR_BIN_DIR)/false.c
 

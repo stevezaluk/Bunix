@@ -19,28 +19,36 @@ bool rtc_is_updating() {
 }
 
 // Date/Time Functions
-void rtc_read_full(struct rtc_date *date) {
+void rtc_read_full(struct rtc_date *date) { // <-- ADD THIS LINE
     while (rtc_is_updating());  // Wait for update to complete
-    
+
+    // Read raw RTC values
     date->second = rtc_read_register(RTC_SECONDS);
     date->minute = rtc_read_register(RTC_MINUTES);
     date->hour = rtc_read_register(RTC_HOURS);
     date->day = rtc_read_register(RTC_DAY_OF_MONTH);
     date->month = rtc_read_register(RTC_MONTH);
-    date->year = rtc_read_register(RTC_YEAR);
-    
+    uint8_t raw_year = rtc_read_register(RTC_YEAR);      // 0x09: 2-digit year
+    uint8_t raw_century = rtc_read_register(0x32);       // 0x32: Century
+
+    // Read RTC configuration
     uint8_t statusB = rtc_read_register(RTC_STATUS_B);
     date->is_24hour = statusB & RTC_24HOUR_MODE;
     date->is_pm = (date->hour & 0x80) && !date->is_24hour;
-    
+
+    // Convert BCD to binary if needed
     if (!(statusB & RTC_BCD_MODE)) {
         date->second = bcd_to_bin(date->second);
         date->minute = bcd_to_bin(date->minute);
         date->hour = bcd_to_bin(date->hour);
         date->day = bcd_to_bin(date->day);
         date->month = bcd_to_bin(date->month);
-        date->year = bcd_to_bin(date->year);
+        raw_year = bcd_to_bin(raw_year);
+        raw_century = bcd_to_bin(raw_century);
     }
+
+    // Combine century and year into a 4-digit value
+    date->year = (raw_century * 100) + raw_year;
 }
 
 // Conversion Functions
@@ -65,13 +73,21 @@ uint8_t days_in_month(uint8_t month, uint8_t year) {
     return days[month - 1];
 }
 
-uint8_t day_of_week(uint8_t day, uint8_t month, uint8_t year) {
+uint8_t day_of_week(uint8_t day, uint8_t month, uint16_t year) {
     if (month < 3) {
         month += 12;
-        year--;  // Adjust year for January/February
+        year--; // Adjust year for January/February
     }
-    uint8_t century = 20;  // Since year is 2000-based (00-99)
-    return (day + (13 * (month + 1) / 5 + year + year / 4 + century / 4 + 5 * century)) % 7;
+    uint8_t q = day;                // Day of the month
+    uint8_t m = month;              // Adjusted month (March=3, ..., February=14)
+    uint8_t k = year % 100;         // Year of the century (last two digits)
+    uint8_t j = year / 100;         // Zero-based century (e.g., 2025 → 20)
+    
+    // Zeller's Congruence (Gregorian calendar)
+    uint8_t h = (q + (13 * (m + 1) / 5) + k + (k / 4) + (j / 4) + 5 * j) % 7;
+    
+    // Adjust result to match 0=Sunday, 1=Monday, ..., 6=Saturday
+    return (h + 6) % 7;
 }
 
 // DST Calculations

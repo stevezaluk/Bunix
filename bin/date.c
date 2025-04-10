@@ -18,7 +18,7 @@ void date_command(const char *args) {
     vga_putchar('/');
     vga_putdec(date.month, 2);
     vga_putchar('/');
-    vga_putdec(2000 + date.year, 4);
+    vga_putdec(date.year, 4);
 
     // Calculate the weekday using the function from rtc.c
     uint8_t weekday = day_of_week(date.day, date.month, date.year);
