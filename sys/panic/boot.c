@@ -16,8 +16,8 @@
 #include "../../include/kernel/arch/x86/cpu.h"
 
 // Boot timing configuration
-#define BOOT_DELAY_SHORT    200000
-#define BOOT_DELAY_LONG     300000
+#define BOOT_DELAY_SHORT    150000
+#define BOOT_DELAY_LONG     200000
 
 extern uint32_t multiboot_info_ptr;
 extern uint32_t __bitmap_start;

@@ -63,6 +63,7 @@ Command commands[] = {
     {"true",       true_main,         "Return success status"},
     {"false",      false_main,        "Return failure status"},
     {"fetch",      fetch_command,     "Fetching OS information"},
+    {"sleep",      sleep_command,     "Halt execution of the OS"},
     {NULL, NULL, NULL} // End marker
 };
 

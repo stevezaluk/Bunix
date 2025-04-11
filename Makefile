@@ -49,6 +49,7 @@ BIN_SRCS = \
 	$(BIN_DIR)/yes.c \
 	$(BIN_DIR)/uname.c \
 	$(BIN_DIR)/fetch.c \
+	$(BIN_DIR)/sleep.c \
 	$(USR_BIN_DIR)/true.c \
 	$(USR_BIN_DIR)/false.c
 
