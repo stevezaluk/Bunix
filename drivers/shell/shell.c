@@ -59,11 +59,11 @@ Command commands[] = {
     {"meminfo",    meminfo_command,   "Display memory usage information"},
     {"cowsay",     cowsay_command,    "Configurable talking cow (requires ASCII art)"},
     {"uname",      uname_command,     "Print system information"},
-    {"yes",        yes_command,       "Repedeatly print a string"},
+    {"yes",        yes_command,       "Repeatedly print a string"},
     {"true",       true_main,         "Return success status"},
     {"false",      false_main,        "Return failure status"},
-    {"fetch",      fetch_command,     "Fetching OS information"},
-    {"sleep",      sleep_command,     "Halt execution of the OS"},
+    {"fetch",      fetch_command,     "Displaying OS information"},
+    {"sleep",      sleep_command,     "Pause execution for a duration"},
     {"hexdump",    hexdump_command,   "Display binary data in hex"},
     {NULL, NULL, NULL} // End marker
 };
