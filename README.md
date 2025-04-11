@@ -4,7 +4,7 @@ Bunix all rights reserved.
 --------------------------
 
 Bunix is a Unix-Like Operating System Developed entirely from scratch by one person.
-It focuses on perfomance stability and security.
+It focuses on performance stability and security.
 Updates may slow down sometimes due to school and my personal life.
 
 Processor supported currently is only i386 by now but x86_64 will be planned on to be added as well.
