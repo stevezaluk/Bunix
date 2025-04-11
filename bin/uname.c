@@ -1,6 +1,7 @@
 // bin/uname.c - System information command
 #include "../include/video/vga.h"
 #include "../include/lib/string.h"
+#include "../include/version/version.h"
 
 // Print usage information
 static void print_usage() {
@@ -15,7 +16,8 @@ static void print_usage() {
 void uname_command(const char *args) {
     if (args == NULL || args[0] == '\0') {
         // Basic case: just "uname"
-        vga_puts("Bunix\n");
+        vga_puts("");
+        vga_puts(BUNIX_NAME "\n");
     }
     else {
         // Tokenize arguments (simple version)
@@ -23,7 +25,8 @@ void uname_command(const char *args) {
         
         if (arg[0] == '-') {
             if (strcmp(arg, "-r") == 0) {
-                vga_puts("0.1-bunix\n");
+                vga_puts("");
+                vga_puts(BUNIX_VERSION "\n");
             }
             else if (strcmp(arg, "--help") == 0) {
                 print_usage();

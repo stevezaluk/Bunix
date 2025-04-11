@@ -1,170 +1,172 @@
+/**
+ * Kernel debug implementation
+ * 
+ * Provides formatted output capabilities for system diagnostics
+ */
+
 #include "../../include/kernel/panic/debug.h"
 #include "../../include/video/vga.h"
 #include "../../include/kernel/ports/ports.h"
 #include <stdarg.h>
+#include <stdbool.h>
 
-static uint8_t debug_level = DEBUG_LEVEL_INFO;
+// Module configuration
+#define DEBUG_BUFFER_SIZE   256
+#define HEX_PREFIX         "0x"
+#define HEX_DIGITS         8
 
-// Forward declarations for helper functions
-static size_t debug_format_dec(char* buf, int num);
-static size_t debug_format_hex(char* buf, unsigned int num);
-static size_t debug_format_str(char* buf, const char* str);
+static DebugLevel current_debug_level = DEBUG_LEVEL_INFO;
+
+// Internal formatting functions
+static size_t format_decimal(char* buffer, int number);
+static size_t format_hex(char* buffer, unsigned int number);
+static size_t format_string(char* buffer, const char* string);
 
 void debug_initialize(void) {
     vga_initialize();
-    debug_level = DEBUG_LEVEL_INFO;
-    DEBUG_INFO("Debug system initialized");
+    current_debug_level = DEBUG_LEVEL_INFO;
+    DEBUG_INFO("Debug subsystem initialized [Level: %d]", current_debug_level);
 }
 
-void debug_set_level(uint8_t level) {
-    debug_level = level;
-    DEBUG_INFO("Debug level set to %d", level);
+void debug_set_level(DebugLevel level) {
+    current_debug_level = level;
+    DEBUG_INFO("Debug verbosity level changed to %d", level);
 }
 
-void debug_print(uint8_t level, uint8_t color, const char* prefix, const char* fmt, ...) {
-    if (level > debug_level) return;
+void debug_print(DebugLevel level, DebugColor color, const char* prefix, 
+                const char* fmt, ...) {
+    if (level > current_debug_level) return;
 
-    // Save current color
-    uint8_t old_color = vga_get_color();
-
-    // Print prefix with brackets and color
+    // Save original color state
+    const uint8_t original_color = vga_get_color();
+    
+    // Print formatted prefix
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     vga_puts("[ ");
-    
+
     vga_set_color(color, VGA_COLOR_BLACK);
     vga_puts(prefix);
-    
+
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     vga_puts(" ] ");
-    
-    // Restore label color for message
-    vga_set_color(DEBUG_COLOR_LABEL, VGA_COLOR_BLACK);
 
-    // Process variable arguments
+    // Process format string
     va_list args;
     va_start(args, fmt);
     
-    // Temporary buffer for formatted output
-    char buffer[256];
-    char* ptr = buffer;
+    char buffer[DEBUG_BUFFER_SIZE];
+    char* buffer_ptr = buffer;
     
-    while (*fmt) {
-        if (*fmt == '%') {
-            fmt++;
-            switch (*fmt) {
-                case 'd': {
-                    int num = va_arg(args, int);
-                    ptr += debug_format_dec(ptr, num);
-                    break;
-                }
-                case 'x': {
-                    unsigned int num = va_arg(args, unsigned int);
-                    ptr += debug_format_hex(ptr, num);
-                    break;
-                }
-                case 's': {
-                    char* str = va_arg(args, char*);
-                    ptr += debug_format_str(ptr, str);
-                    break;
-                }
-                case 'c': {
-                    char c = (char)va_arg(args, int);
-                    *ptr++ = c;
-                    break;
-                }
-                default:
-                    *ptr++ = *fmt;
-                    break;
-            }
-        } else {
-            *ptr++ = *fmt;
+    for (const char* fmt_ptr = fmt; *fmt_ptr; fmt_ptr++) {
+        if (*fmt_ptr != '%') {
+            *buffer_ptr++ = *fmt_ptr;
+            continue;
         }
-        fmt++;
+
+        // Handle format specifier
+        switch (*++fmt_ptr) {
+            case 'd': {
+                const int num = va_arg(args, int);
+                buffer_ptr += format_decimal(buffer_ptr, num);
+                break;
+            }
+            
+            case 'x': {
+                const unsigned int num = va_arg(args, unsigned int);
+                buffer_ptr += format_hex(buffer_ptr, num);
+                break;
+            }
+            
+            case 's': {
+                const char* str = va_arg(args, char*);
+                buffer_ptr += format_string(buffer_ptr, str);
+                break;
+            }
+            
+            case 'c': {
+                const char c = (char)va_arg(args, int);
+                *buffer_ptr++ = c;
+                break;
+            }
+            
+            default:
+                *buffer_ptr++ = *fmt_ptr;
+                break;
+        }
     }
-    *ptr = '\0';
     
+    *buffer_ptr = '\0';
     va_end(args);
-    
-    // Print the formatted string
+
+    // Output formatted message
+    vga_set_color(DEBUG_COLOR_LABEL, VGA_COLOR_BLACK);
     vga_puts(buffer);
-    vga_puts("\n");
-    
-    // Restore original color
-    vga_set_color(old_color >> 4, old_color & 0x0F);
+    vga_putchar('\n');
+
+    // Restore original color state
+    vga_set_color(original_color >> 4, original_color & 0x0F);
 }
 
-void debug_print_raw(const char* str) {
-    vga_puts(str);
-}
-
-void debug_print_hex(uint32_t num) {
-    vga_puthex(num);
-}
-
-void debug_print_dec(uint32_t num, uint8_t digits) {
-    vga_putdec(num, digits);
-}
-
-/* Helper function implementations */
-
-static size_t debug_format_dec(char* buf, int num) {
-    if (num == 0) {
-        *buf = '0';
+// Implementation of formatting helpers
+static size_t format_decimal(char* buffer, int number) {
+    if (number == 0) {
+        *buffer = '0';
         return 1;
     }
 
     char temp[16];
     char* ptr = temp;
-    size_t len = 0;
-    int is_neg = 0;
+    size_t length = 0;
+    const bool is_negative = number < 0;
 
-    if (num < 0) {
-        is_neg = 1;
-        num = -num;
+    if (is_negative) {
+        number = -number;
     }
 
-    while (num > 0) {
-        *ptr++ = '0' + (num % 10);
-        num /= 10;
-        len++;
+    while (number > 0) {
+        *ptr++ = '0' + (number % 10);
+        number /= 10;
+        length++;
     }
 
-    if (is_neg) {
-        *buf++ = '-';
-        len++;
+    if (is_negative) {
+        *buffer++ = '-';
+        length++;
     }
 
     while (ptr > temp) {
-        *buf++ = *--ptr;
+        *buffer++ = *--ptr;
     }
 
-    return len;
+    return length;
 }
 
-static size_t debug_format_hex(char* buf, unsigned int num) {
-    const char hex_chars[] = "0123456789ABCDEF";
-    size_t len = 0;
+static size_t format_hex(char* buffer, unsigned int number) {
+    const char hex_digits[] = "0123456789ABCDEF";
+    size_t length = 0;
 
-    *buf++ = '0';
-    *buf++ = 'x';
-    len += 2;
+    // Add hexadecimal prefix
+    *buffer++ = '0';
+    *buffer++ = 'x';
+    length += 2;
 
-    int shift = 28;
-    while (shift >= 0) {
-        uint8_t nibble = (num >> shift) & 0xF;
-        *buf++ = hex_chars[nibble];
-        len++;
-        shift -= 4;
+    // Format 8-digit hexadecimal
+    for (int shift = 28; shift >= 0; shift -= 4) {
+        const uint8_t nibble = (number >> shift) & 0xF;
+        *buffer++ = hex_digits[nibble];
+        length++;
     }
 
-    return len;
+    return length;
 }
 
-static size_t debug_format_str(char* buf, const char* str) {
-    size_t len = 0;
-    while (*str) {
-        *buf++ = *str++;
-        len++;
+static size_t format_string(char* buffer, const char* string) {
+    size_t length = 0;
+    
+    while (*string) {
+        *buffer++ = *string++;
+        length++;
     }
-    return len;
+    
+    return length;
 }

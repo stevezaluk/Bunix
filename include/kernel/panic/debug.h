@@ -6,38 +6,62 @@
 #include <stdarg.h>
 #include "../../video/vga.h"
 
-// Debug levels
-#define DEBUG_LEVEL_NONE   0
-#define DEBUG_LEVEL_ERROR 1
-#define DEBUG_LEVEL_WARN  2
-#define DEBUG_LEVEL_INFO  3
-#define DEBUG_LEVEL_DEBUG 4
-#define DEBUG_LEVEL_TRACE 5
+/**
+ * @brief Debug subsystem for kernel-level logging and diagnostics
+ * 
+ * Provides configurable logging levels, colored output, and formatted printing
+ */
 
-// Debug colors
-#define DEBUG_COLOR_SUCCESS VGA_COLOR_GREEN
-#define DEBUG_COLOR_ERROR   VGA_COLOR_RED
-#define DEBUG_COLOR_WARN    VGA_COLOR_YELLOW
-#define DEBUG_COLOR_INFO    VGA_COLOR_LIGHT_BLUE
-#define DEBUG_COLOR_DEBUG   VGA_COLOR_LIGHT_GREY
-#define DEBUG_COLOR_TRACE   VGA_COLOR_DARK_GREY
-#define DEBUG_COLOR_LABEL   VGA_COLOR_WHITE
+// Debug level enumeration
+typedef enum {
+    DEBUG_LEVEL_NONE   = 0,
+    DEBUG_LEVEL_ERROR  = 1,
+    DEBUG_LEVEL_WARN   = 2,
+    DEBUG_LEVEL_INFO   = 3,
+    DEBUG_LEVEL_DEBUG  = 4,
+    DEBUG_LEVEL_TRACE  = 5
+} DebugLevel;
 
-// Debug macros
-#define DEBUG_INIT() debug_initialize()
-#define DEBUG_SUCCESS(fmt, ...) debug_print(DEBUG_LEVEL_INFO, DEBUG_COLOR_SUCCESS, " OK ", fmt, ##__VA_ARGS__)
-#define DEBUG_ERROR(fmt, ...) debug_print(DEBUG_LEVEL_ERROR, DEBUG_COLOR_ERROR, " !! ", fmt, ##__VA_ARGS__)
-#define DEBUG_WARN(fmt, ...) debug_print(DEBUG_LEVEL_WARN, DEBUG_COLOR_WARN, " ?? ", fmt, ##__VA_ARGS__)
-#define DEBUG_INFO(fmt, ...) debug_print(DEBUG_LEVEL_INFO, DEBUG_COLOR_INFO, " -- ", fmt, ##__VA_ARGS__)
-#define DEBUG_DEBUG(fmt, ...) debug_print(DEBUG_LEVEL_DEBUG, DEBUG_COLOR_DEBUG, " ** ", fmt, ##__VA_ARGS__)
-#define DEBUG_TRACE(fmt, ...) debug_print(DEBUG_LEVEL_TRACE, DEBUG_COLOR_TRACE, " >> ", fmt, ##__VA_ARGS__)
+// Color scheme for debug levels
+typedef enum {
+    DEBUG_COLOR_SUCCESS = VGA_COLOR_GREEN,
+    DEBUG_COLOR_ERROR   = VGA_COLOR_RED,
+    DEBUG_COLOR_WARN    = VGA_COLOR_YELLOW,
+    DEBUG_COLOR_INFO    = VGA_COLOR_LIGHT_BLUE,
+    DEBUG_COLOR_DEBUG   = VGA_COLOR_LIGHT_GREY,
+    DEBUG_COLOR_TRACE   = VGA_COLOR_DARK_GREY,
+    DEBUG_COLOR_LABEL   = VGA_COLOR_WHITE
+} DebugColor;
 
-// Function prototypes
+// Debug logging macros
+#define DEBUG_INIT()         debug_initialize()
+#define DEBUG_SUCCESS(...)   debug_print(DEBUG_LEVEL_INFO,   DEBUG_COLOR_SUCCESS, " OK ", __VA_ARGS__)
+#define DEBUG_ERROR(...)     debug_print(DEBUG_LEVEL_ERROR,  DEBUG_COLOR_ERROR,   " !! ", __VA_ARGS__)
+#define DEBUG_WARN(...)      debug_print(DEBUG_LEVEL_WARN,   DEBUG_COLOR_WARN,    " ?? ", __VA_ARGS__)
+#define DEBUG_INFO(...)      debug_print(DEBUG_LEVEL_INFO,   DEBUG_COLOR_INFO,    " -- ", __VA_ARGS__)
+#define DEBUG_DEBUG(...)     debug_print(DEBUG_LEVEL_DEBUG,  DEBUG_COLOR_DEBUG,   " ** ", __VA_ARGS__)
+#define DEBUG_TRACE(...)     debug_print(DEBUG_LEVEL_TRACE,  DEBUG_COLOR_TRACE,   " >> ", __VA_ARGS__)
+
+/**
+ * @brief Initialize debug subsystem
+ */
 void debug_initialize(void);
-void debug_set_level(uint8_t level);
-void debug_print(uint8_t level, uint8_t color, const char* prefix, const char* fmt, ...);
-void debug_print_raw(const char* str);
-void debug_print_hex(uint32_t num);
-void debug_print_dec(uint32_t num, uint8_t digits);
+
+/**
+ * @brief Set current debug verbosity level
+ * @param level Maximum level to display (from DebugLevel enum)
+ */
+void debug_set_level(DebugLevel level);
+
+/**
+ * @brief Internal formatted print function
+ * @param level Debug level of the message
+ * @param color Color to use for message prefix
+ * @param prefix 4-character message prefix
+ * @param fmt Format string (printf-style)
+ * @param ... Variable arguments
+ */
+void debug_print(DebugLevel level, DebugColor color, const char* prefix, 
+                const char* fmt, ...);
 
 #endif // DEBUG_H

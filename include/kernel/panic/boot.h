@@ -1,7 +1,11 @@
 #ifndef BOOT_H
 #define BOOT_H
 
-#include <stdint.h>
+/**
+ * @brief Boot sequence management
+ * 
+ * Handles early system initialization and hardware verification
+ */
 
 void boot_screen(void);
 

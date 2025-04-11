@@ -62,6 +62,7 @@ Command commands[] = {
     {"yes",        yes_command,       "Repedeatly print a string"},
     {"true",       true_main,         "Return success status"},
     {"false",      false_main,        "Return failure status"},
+    {"fetch",      fetch_command,     "Fetching OS information"},
     {NULL, NULL, NULL} // End marker
 };
 
