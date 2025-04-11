@@ -50,6 +50,7 @@ BIN_SRCS = \
 	$(BIN_DIR)/uname.c \
 	$(BIN_DIR)/fetch.c \
 	$(BIN_DIR)/sleep.c \
+	$(BIN_DIR)/hexdump.c \
 	$(USR_BIN_DIR)/true.c \
 	$(USR_BIN_DIR)/false.c
 

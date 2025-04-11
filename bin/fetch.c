@@ -2,6 +2,8 @@
 #include <mm/vmm.h>
 #include <stdint.h>
 #include "../include/version/version.h"
+// Declaration for calculate_uptime from uptime.c
+extern uint32_t calculate_uptime();
 
 // CPUID implementation
 static void cpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
@@ -26,17 +28,17 @@ static void format_memory(size_t size) {
     const char *units[] = {"B", "KB", "MB", "GB"};
     size_t unit = 0;
     size_t divisor = 1;
-
+    
     // Find appropriate unit
     while (size >= 1024 * divisor && unit < 3) {
         divisor *= 1024;
         unit++;
     }
-
+    
     // Calculate whole units
     size_t whole = size / divisor;
     size_t remainder = size % divisor;
-
+    
     // Print whole part
     vga_putdec(whole, 0);
     
@@ -96,6 +98,26 @@ void fetch_command(void) {
     format_memory(used_mem);
     vga_puts(" / ");
     format_memory(total_mem);
+    
+    // Display uptime
+    vga_move_cursor(info_x, y++);
+    vga_set_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
+    vga_puts("Uptime: ");
+    vga_set_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    
+    uint32_t uptime_seconds = calculate_uptime();
+    uint32_t days = uptime_seconds / 86400;
+    uptime_seconds %= 86400;
+    uint32_t hours = uptime_seconds / 3600;
+    uptime_seconds %= 3600;
+    uint32_t minutes = uptime_seconds / 60;
+    
+    vga_putdec(days, 0);
+    vga_puts("d ");
+    vga_putdec(hours, 0);
+    vga_puts("h ");
+    vga_putdec(minutes, 0);
+    vga_puts("m");
     
     // Add separator line
     vga_move_cursor(0, y+1);

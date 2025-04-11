@@ -64,6 +64,7 @@ Command commands[] = {
     {"false",      false_main,        "Return failure status"},
     {"fetch",      fetch_command,     "Fetching OS information"},
     {"sleep",      sleep_command,     "Halt execution of the OS"},
+    {"hexdump",    hexdump_command,   "Display binary data in hex"},
     {NULL, NULL, NULL} // End marker
 };
 
