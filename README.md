@@ -19,6 +19,9 @@ Test it and provide a screenshot that it's working.
 Tell us specifically what that contribution is for.
 Example for syscalls, keyboard drivers, etc.
 
+# How to boot the system
+To start the system you can compile the necessary dependencies using make, then make run to run it in qemu.
+
 # Future of Bunix
 This is definitely Fun to Work on and Will improve over time!
 We will have to look and see.
