@@ -1,7 +1,7 @@
 #ifndef _BUNIX_VERSION_H
 #define _BUNIX_VERSION_H
 
-#define BUNIX_VERSION "0.0.5"
+#define BUNIX_VERSION "0.0.6"
 #define BUNIX_NAME "Bunix"
 #define BUNIX_HOSTNAME "root"
 #define BUNIX_ARCH "i386"
