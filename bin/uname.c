@@ -1,52 +1,81 @@
-// bin/uname.c - System information command
+// bin/uname.c - Enhanced System information command
 #include "../include/video/vga.h"
 #include "../include/lib/string.h"
 #include "../include/version/version.h"
 
-// Print usage information
 static void print_usage() {
     vga_puts("Usage: uname [OPTION]...\n");
     vga_puts("Print system information.\n\n");
     vga_puts("Options:\n");
+    vga_puts("  -a     Print all information\n");
+    vga_puts("  -s     Print kernel name\n");
+    vga_puts("  -n     Print network node hostname\n");
     vga_puts("  -r     Print kernel release\n");
+    vga_puts("  -m     Print machine architecture\n");
+    vga_puts("  -v     Print kernel build version\n");
+    vga_puts("  -o     Print operating system\n");
     vga_puts("  --help Display this help\n");
 }
 
-// The command function that will be called from shell.c
 void uname_command(const char *args) {
-    if (args == NULL || args[0] == '\0') {
-        // Basic case: just "uname"
-        vga_puts("");
-        vga_puts(BUNIX_NAME "\n");
-    }
-    else {
-        // Tokenize arguments (simple version)
+    char flags[20] = {0};
+    int flag_count = 0;
+    int print_all = 0;
+
+    if (args) {
         char *arg = strtok((char *)args, " ");
-        
-        if (arg[0] == '-') {
-            if (strcmp(arg, "-r") == 0) {
-                vga_puts("");
-                vga_puts(BUNIX_VERSION "\n");
-            }
-            else if (strcmp(arg, "--help") == 0) {
+        while (arg) {
+            if (strcmp(arg, "--help") == 0) {
                 print_usage();
-            }
-            else {
-                // Invalid option
+                return;
+            } else if (arg[0] == '-') {
+                for (int i = 1; arg[i]; i++) {
+                    char c = arg[i];
+                    if (c == 'a' || c == 's' || c == 'n' || 
+                        c == 'r' || c == 'm' || c == 'v' || c == 'o') {
+                        if (flag_count < 20) flags[flag_count++] = c;
+                    } else {
+                        vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+                        vga_puts("uname: invalid option '-");
+                        vga_putchar(c);
+                        vga_puts("'\n");
+                        print_usage();
+                        return;
+                    }
+                }
+            } else {
                 vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
-                vga_puts("uname: invalid option '");
+                vga_puts("uname: unrecognized argument '");
                 vga_puts(arg);
                 vga_puts("'\n");
                 print_usage();
+                return;
+            }
+            arg = strtok(NULL, " ");
+        }
+    }
+
+    for (int i = 0; i < flag_count; i++) {
+        if (flags[i] == 'a') { print_all = 1; break; }
+    }
+
+    if (print_all || flag_count == 0) {
+        vga_puts(BUNIX_NAME " " BUNIX_HOSTNAME " " BUNIX_VERSION " " 
+                BUNIX_BUILD_VERSION " " BUNIX_ARCH " " BUNIX_OS "\n");
+    } else {
+        int first = 1;
+        for (int i = 0; i < flag_count; i++) {
+            if (!first) vga_putchar(' ');
+            first = 0;
+            switch(flags[i]) {
+                case 's': vga_puts(BUNIX_NAME); break;
+                case 'n': vga_puts(BUNIX_HOSTNAME); break;
+                case 'r': vga_puts(BUNIX_VERSION); break;
+                case 'm': vga_puts(BUNIX_ARCH); break;
+                case 'v': vga_puts(BUNIX_BUILD_VERSION); break;
+                case 'o': vga_puts(BUNIX_OS); break;
             }
         }
-        else {
-            // Argument doesn't start with -
-            vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
-            vga_puts("uname: unrecognized argument '");
-            vga_puts(arg);
-            vga_puts("'\n");
-            print_usage();
-        }
+        vga_putchar('\n');
     }
 }

@@ -51,6 +51,11 @@ BIN_SRCS = \
 	$(BIN_DIR)/fetch.c \
 	$(BIN_DIR)/sleep.c \
 	$(BIN_DIR)/hexdump.c \
+	$(BIN_DIR)/expr.c \
+	$(BIN_DIR)/grep.c \
+	$(BIN_DIR)/factor.c \
+	$(BIN_DIR)/rand.c \
+	$(BIN_DIR)/tty.c \
 	$(USR_BIN_DIR)/true.c \
 	$(USR_BIN_DIR)/false.c
 

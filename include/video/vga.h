@@ -62,5 +62,7 @@ void vga_init_double_buffer(void);    // Initialize double buffer
 void vga_get_cursor(int *x, int *y);  // Get current cursor position
 uint8_t vga_get_color(void);          // Get current color
 void vga_puthex(uint32_t num);
+void vga_putchar_at(char c, int x, int y);
+void vga_puts_at(const char *str, int x, int y);
 
 #endif // VGA_H

@@ -113,7 +113,7 @@ char kb_getchar(void) {
         while ((inb(KB_STATUS_PORT) & 0x01) == 0);
         
         scancode = inb(KB_DATA_PORT);
-        
+
         // Handle key release
         if (scancode & 0x80) {
             handle_key_release(scancode & 0x7F);

@@ -216,3 +216,23 @@ void vga_puthex(uint32_t num) {
         vga_putchar(hex_chars[nibble]);
     }
 }
+
+void vga_putchar_at(char c, int x, int y) {
+    if (x >= 0 && x < VGA_WIDTH && y >= 0 && y < VGA_HEIGHT) {
+        size_t index = y * VGA_WIDTH + x;
+        vga_buffer[index] = vga_entry(c, vga_color);
+    }
+}
+
+void vga_puts_at(const char *str, int x, int y) {
+    int original_x = x;
+    while (*str) {
+        if (*str == '\n') {
+            y++;
+            x = original_x;
+        } else {
+            vga_putchar_at(*str, x++, y);
+        }
+        str++;
+    }
+}

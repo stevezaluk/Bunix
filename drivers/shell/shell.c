@@ -65,6 +65,11 @@ Command commands[] = {
     {"fetch",      fetch_command,     "Displaying OS information"},
     {"sleep",      sleep_command,     "Pause execution for a duration"},
     {"hexdump",    hexdump_command,   "Display binary data in hex"},
+    {"expr",       expr_command,      "Calculate entered input"},
+    {"grep",       grep_command,      "Search for patterns in input lines"},
+    {"factor",     factor_command,    "Factor numbers"},
+    {"rand",       rand_command,      "Generate a random number"},
+    {"tty",        tty_command,       "Show terminal device name"},
     {NULL, NULL, NULL} // End marker
 };
 
