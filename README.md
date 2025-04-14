@@ -19,9 +19,6 @@ Test it and provide a screenshot that it's working.
 Tell us specifically what that contribution is for.
 Example for syscalls, keyboard drivers, etc.
 
-# How to boot the system
-To start the system you can compile the necessary dependencies using make, then make run to run it in qemu.
-
 ## Building from scratch
 1. Install the required dependencies: `sudo apt-get update && sudo apt-get install qemu-system nasm mtool gcc-multilib`
 2. Build: `make`
